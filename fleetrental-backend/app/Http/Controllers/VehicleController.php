@@ -11,11 +11,13 @@ class VehicleController extends Controller
     public function index(Request $request)
     {
         $companyId = $request->user()->company_id;
-        
+
         $vehicles = Vehicle::where('company_id', $companyId)
-            ->with(['maintenances' => function ($query) {
-                $query->latest()->take(1);
-            }])
+            ->with([
+                'maintenances' => function ($query) {
+                    $query->latest()->take(1);
+                }
+            ])
             ->get();
 
         return response()->json($vehicles);
@@ -23,25 +25,25 @@ class VehicleController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'brand'              => ['required', 'string', 'max:255'],
-            'model'              => ['required', 'string', 'max:255'],
-            'year'               => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
-            'registration_number'=> ['required', 'string', 'max:255'],
-            'vin'                => ['nullable', 'string', 'max:255'],
-            'current_mileage'    => ['required', 'integer', 'min:0'],
-            'purchase_date'      => ['nullable', 'date'],
-            'status'             => ['required', Rule::in(['available', 'rented', 'maintenance', 'out_of_service', 'reserved'])],
-            'vehicle_type'       => ['required', 'string', 'max:255'],
-            'daily_rate'         => ['nullable', 'numeric', 'min:0'],
-            'photo'              => ['nullable', 'string'],
+        $validated = $request->validate([
+            'brand' => 'required|string|max:100',
+            'model' => 'required|string|max:100',
+            'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
+            'registration_number' => 'required|string|max:50',
+            'vin' => 'nullable|string|max:50',
+            'current_mileage' => 'required|integer|min:0',
+            'purchase_date' => 'nullable|date',
+            'status' => 'required|in:available,rented,maintenance,out_of_service',
+            'vehicle_type' => 'nullable|string|max:100',
+            'daily_rate' => 'nullable|numeric|min:0',
+            'photo' => 'nullable|string|max:500',
         ]);
 
-        $data['company_id'] = $request->user()->company_id;
+        $validated['company_id'] = $request->user()->company_id;
 
-        $vehicle = Vehicle::create($data);
+        $vehicle = Vehicle::create($validated);
 
-        return response()->json($vehicle, 201);
+        return response()->json($vehicle->load('company'), 201);
     }
 
     public function update(Request $request, Vehicle $vehicle)
@@ -52,17 +54,17 @@ class VehicleController extends Controller
         }
 
         $data = $request->validate([
-            'brand'              => ['required', 'string', 'max:255'],
-            'model'              => ['required', 'string', 'max:255'],
-            'year'               => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
-            'registration_number'=> ['required', 'string', 'max:255'],
-            'vin'                => ['nullable', 'string', 'max:255'],
-            'current_mileage'    => ['required', 'integer', 'min:0'],
-            'purchase_date'      => ['nullable', 'date'],
-            'status'             => ['required', Rule::in(['available', 'rented', 'maintenance', 'out_of_service', 'reserved'])],
-            'vehicle_type'       => ['required', 'string', 'max:255'],
-            'daily_rate'         => ['nullable', 'numeric', 'min:0'],
-            'photo'              => ['nullable', 'string'],
+            'brand' => ['required', 'string', 'max:255'],
+            'model' => ['required', 'string', 'max:255'],
+            'year' => ['required', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            'registration_number' => ['required', 'string', 'max:255'],
+            'vin' => ['nullable', 'string', 'max:255'],
+            'current_mileage' => ['required', 'integer', 'min:0'],
+            'purchase_date' => ['nullable', 'date'],
+            'status' => ['required', Rule::in(['available', 'rented', 'maintenance', 'out_of_service', 'reserved'])],
+            'vehicle_type' => ['required', 'string', 'max:255'],
+            'daily_rate' => ['nullable', 'numeric', 'min:0'],
+            'photo' => ['nullable', 'string'],
         ]);
 
         $vehicle->update($data);
