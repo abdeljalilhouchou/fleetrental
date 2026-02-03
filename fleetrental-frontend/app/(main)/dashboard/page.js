@@ -114,8 +114,14 @@ export default function DashboardPage() {
                                                 <Car size={18} className="text-blue-600" />
                                             </div>
                                             <div>
-                                                <div className="text-sm font-semibold text-gray-800">{v.color} {v.make} {v.model}</div>
-                                                <div className="text-xs text-gray-400">{v.license_plate} · {v.year}</div>
+                                                {/* CORRECTION ICI : Utiliser brand au lieu de make */}
+                                                <div className="text-sm font-semibold text-gray-800">
+                                                    {v.color} {v.brand} {v.model}
+                                                </div>
+                                                {/* CORRECTION ICI : Utiliser registration_number au lieu de license_plate */}
+                                                <div className="text-xs text-gray-400">
+                                                    {v.registration_number} · {v.year}
+                                                </div>
                                             </div>
                                         </div>
                                         <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg ${status.color}`}>

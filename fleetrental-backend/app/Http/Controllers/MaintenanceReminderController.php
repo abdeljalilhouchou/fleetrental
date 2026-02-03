@@ -20,13 +20,13 @@ class MaintenanceReminderController extends Controller
             $vehicle = $reminder->vehicle;
             $status = 'ok';
 
-            $mileageOverdue = $reminder->next_due_mileage && $vehicle->mileage >= $reminder->next_due_mileage;
+            $mileageOverdue = $reminder->next_due_mileage && $vehicle->current_mileage >= $reminder->next_due_mileage;
             $dateOverdue = $reminder->next_due_date && Carbon::parse($reminder->next_due_date)->isPast();
 
             if ($mileageOverdue || $dateOverdue) {
                 $status = 'overdue';
             } else {
-                $mileageUpcoming = $reminder->next_due_mileage && ($reminder->next_due_mileage - $vehicle->mileage) <= 500;
+                $mileageUpcoming = $reminder->next_due_mileage && ($reminder->next_due_mileage - $vehicle->current_mileage) <= 500;
                 $dateUpcoming = $reminder->next_due_date && Carbon::parse($reminder->next_due_date)->diffInDays(Carbon::now()) <= 7;
 
                 if ($mileageUpcoming || $dateUpcoming) {
@@ -83,7 +83,7 @@ class MaintenanceReminderController extends Controller
 
         // Nouveau kilométrage = kilométrage actuel du véhicule + intervalle
         if (!empty($data['mileage_interval'])) {
-            $reminder->next_due_mileage = $vehicle->mileage + $data['mileage_interval'];
+            $reminder->next_due_mileage = $vehicle->current_mileage + $data['mileage_interval'];
         }
 
         // Nouvelle date = aujourd'hui + nombre de mois
