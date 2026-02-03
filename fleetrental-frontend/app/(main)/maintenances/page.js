@@ -261,7 +261,7 @@ export default function MaintenancesPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Maintenances</h1>
             <p className="text-gray-400 text-sm mt-0.5">
-              Suivez l'entretien de vos véhicules
+              Suivez l&apos;entretien de vos véhicules
             </p>
           </div>
         </div>

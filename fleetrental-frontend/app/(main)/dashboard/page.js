@@ -63,7 +63,7 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-800">Bonjour, {user?.name} 👋</h1>
-                <p className="text-gray-400 text-sm mt-1">Voici un aperçu de votre flotte aujourd'hui</p>
+                <p className="text-gray-400 text-sm mt-1">Voici un aperçu de votre flotte aujourd&apos;hui</p>
             </div>
 
             {/* Stats Cards */}
