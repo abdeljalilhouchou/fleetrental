@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -80,6 +79,51 @@ class ProfileController extends Controller
 
         return response()->json([
             'message' => 'Avatar supprimé avec succès',
+            'user' => $user->load('company'),
+        ]);
+    }
+
+    public function updatePreferences(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'theme' => ['nullable', 'string', 'in:light,dark'],
+            'language' => ['nullable', 'string', 'in:fr,en'],
+            'notifications_email' => ['nullable', 'boolean'],
+            'notifications_maintenance' => ['nullable', 'boolean'],
+            'notifications_rental' => ['nullable', 'boolean'],
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Préférences mises à jour avec succès',
+            'user' => $user->load('company'),
+        ]);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return response()->json([
+                'message' => 'Le mot de passe actuel est incorrect',
+                'errors' => ['current_password' => ['Le mot de passe actuel est incorrect']]
+            ], 422);
+        }
+
+        $user->password = Hash::make($validated['password']);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Mot de passe mis à jour avec succès',
             'user' => $user->load('company'),
         ]);
     }

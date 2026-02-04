@@ -51,11 +51,20 @@ class AuthController extends Controller
         $user = $request->user()->load('company');
 
         return response()->json([
-            'id'       => $user->id,
-            'name'     => $user->name,
-            'email'    => $user->email,
-            'role'     => $user->role,
-            'company'  => $user->company,
+            'id'         => $user->id,
+            'name'       => $user->name,
+            'email'      => $user->email,
+            'role'       => $user->role,
+            'company'    => $user->company,
+            'phone'      => $user->phone,
+            'address'    => $user->address,
+            'birthdate'  => $user->birthdate,
+            'avatar'     => $user->avatar,
+            'theme'      => $user->theme,
+            'language'   => $user->language,
+            'notifications_email'       => $user->notifications_email,
+            'notifications_maintenance' => $user->notifications_maintenance,
+            'notifications_rental'      => $user->notifications_rental,
         ]);
     }
 }

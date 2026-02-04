@@ -13,8 +13,11 @@ export function DataProvider({ children }) {
     const [vehicles, setVehicles] = useState([]);
     const [maintenances, setMaintenances] = useState([]);
     const [reminders, setReminders] = useState([]);
+    const [rentals, setRentals] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [users, setUsers] = useState([]);
+    const [stats, setStats] = useState(null);
+    const [superAdminStats, setSuperAdminStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -84,6 +87,20 @@ export function DataProvider({ children }) {
         return [];
     }, []);
 
+    const loadRentals = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_URL}/rentals`, { headers: headers() });
+            if (res.ok) {
+                const data = await res.json();
+                setRentals(data);
+                return data;
+            }
+        } catch (e) {
+            console.error('Error loading rentals:', e);
+        }
+        return [];
+    }, []);
+
     const loadCompanies = useCallback(async () => {
         try {
             const res = await fetch(`${API_URL}/companies`, { headers: headers() });
@@ -112,6 +129,34 @@ export function DataProvider({ children }) {
         return [];
     }, []);
 
+    const loadStats = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_URL}/stats`, { headers: headers() });
+            if (res.ok) {
+                const data = await res.json();
+                setStats(data);
+                return data;
+            }
+        } catch (e) {
+            console.error('Error loading stats:', e);
+        }
+        return null;
+    }, []);
+
+    const loadSuperAdminStats = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_URL}/super-admin/stats`, { headers: headers() });
+            if (res.ok) {
+                const data = await res.json();
+                setSuperAdminStats(data);
+                return data;
+            }
+        } catch (e) {
+            console.error('Error loading super-admin stats:', e);
+        }
+        return null;
+    }, []);
+
     useEffect(() => {
         const initData = async () => {
             const token = getToken();
@@ -122,20 +167,29 @@ export function DataProvider({ children }) {
 
             setLoading(true);
             const userData = await loadUser();
-            
+
             if (userData) {
+                // Charger les données communes
                 await Promise.all([
                     loadVehicles(),
                     loadMaintenances(),
                     loadReminders(),
+                    loadRentals(),
                 ]);
 
+                // Charger les données selon le rôle
                 if (userData.role === 'super_admin') {
-                    await loadCompanies();
+                    await Promise.all([
+                        loadCompanies(),
+                        loadSuperAdminStats(),
+                    ]);
                 }
-                
+
                 if (userData.role === 'super_admin' || userData.role === 'company_admin') {
-                    await loadUsers();
+                    await Promise.all([
+                        loadUsers(),
+                        loadStats(),
+                    ]);
                 }
             }
 
@@ -143,7 +197,7 @@ export function DataProvider({ children }) {
         };
 
         initData();
-    }, [router, loadUser, loadVehicles, loadMaintenances, loadReminders, loadCompanies, loadUsers]);
+    }, [router, loadUser, loadVehicles, loadMaintenances, loadReminders, loadRentals, loadCompanies, loadUsers, loadStats, loadSuperAdminStats]);
 
     const refresh = useCallback(async (resource) => {
         switch (resource) {
@@ -155,38 +209,55 @@ export function DataProvider({ children }) {
                 return await loadMaintenances();
             case 'reminders':
                 return await loadReminders();
+            case 'rentals':
+                return await loadRentals();
             case 'companies':
                 return await loadCompanies();
             case 'users':
                 return await loadUsers();
+            case 'stats':
+                return await loadStats();
+            case 'superAdminStats':
+                return await loadSuperAdminStats();
             case 'all':
                 await Promise.all([
                     loadVehicles(),
                     loadMaintenances(),
                     loadReminders(),
+                    loadRentals(),
                 ]);
-                if (user?.role === 'super_admin') await loadCompanies();
-                if (user?.role === 'super_admin' || user?.role === 'company_admin') await loadUsers();
+                if (user?.role === 'super_admin') {
+                    await Promise.all([loadCompanies(), loadSuperAdminStats()]);
+                }
+                if (user?.role === 'super_admin' || user?.role === 'company_admin') {
+                    await Promise.all([loadUsers(), loadStats()]);
+                }
                 break;
             default:
                 console.warn(`Unknown resource: ${resource}`);
         }
-    }, [user, loadUser, loadVehicles, loadMaintenances, loadReminders, loadCompanies, loadUsers]);
+    }, [user, loadUser, loadVehicles, loadMaintenances, loadReminders, loadRentals, loadCompanies, loadUsers, loadStats, loadSuperAdminStats]);
 
     const value = {
         user,
         vehicles,
         maintenances,
         reminders,
+        rentals,
         companies,
         users,
+        stats,
         loading,
         refresh,
         refreshVehicles: () => refresh('vehicles'),
         refreshMaintenances: () => refresh('maintenances'),
         refreshReminders: () => refresh('reminders'),
+        refreshRentals: () => refresh('rentals'),
         refreshCompanies: () => refresh('companies'),
         refreshUsers: () => refresh('users'),
+        refreshStats: () => refresh('stats'),
+        superAdminStats,
+        refreshSuperAdminStats: () => refresh('superAdminStats'),
         refreshAll: () => refresh('all'),
     };
 

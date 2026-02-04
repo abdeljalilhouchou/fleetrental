@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { getToken } from '../../../lib/api';
-import { useRouter } from 'next/navigation';
 import RoleProtector from '../../components/RoleProtector';
-import { 
-    Car, Plus, Edit2, Trash2, Search, Calendar, User, Phone, 
-    MapPin, CreditCard, CheckCircle2, XCircle, Clock, DollarSign,
-    AlertCircle, TrendingUp, FileText
+import {
+    Car, Plus, Search, User, Phone,
+    CheckCircle2, XCircle, Clock,
+    AlertCircle
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -54,44 +53,23 @@ const EMPTY_FORM = {
 };
 
 export default function RentalsPage() {
-    const { vehicles, refreshVehicles, loading: contextLoading } = useData();
-    
-    const [rentals, setRentals] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { vehicles, rentals, refreshVehicles, refreshRentals, loading } = useData();
+
     const [showModal, setShowModal] = useState(false);
     const [showCompleteModal, setShowCompleteModal] = useState(false);
     const [selectedRental, setSelectedRental] = useState(null);
     const [form, setForm] = useState(EMPTY_FORM);
-    const [editingId, setEditingId] = useState(null);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
     const [search, setSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [completeForm, setCompleteForm] = useState({ end_mileage: 0, paid_amount: 0 });
-    const router = useRouter();
 
     const headers = () => ({
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${getToken()}`,
     });
-
-    const fetchRentals = async () => {
-        try {
-            const res = await fetch(`${API_URL}/rentals`, { headers: headers() });
-            if (res.status === 401) { router.push('/login'); return; }
-            if (res.ok) setRentals(await res.json());
-        } catch (e) {
-            setError('Erreur lors du chargement');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (!getToken()) { router.push('/login'); return; }
-        fetchRentals();
-    }, [router]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -111,12 +89,11 @@ export default function RentalsPage() {
                 return;
             }
 
-            await fetchRentals();
-            await refreshVehicles();
-            
+            await Promise.all([refreshRentals(), refreshVehicles()]);
+
             setShowModal(false);
             setForm(EMPTY_FORM);
-            
+
         } catch (e) {
             setError('Erreur réseau: ' + e.message);
         } finally {
@@ -143,13 +120,12 @@ export default function RentalsPage() {
                 return;
             }
 
-            await fetchRentals();
-            await refreshVehicles();
-            
+            await Promise.all([refreshRentals(), refreshVehicles()]);
+
             setShowCompleteModal(false);
             setSelectedRental(null);
             setCompleteForm({ end_mileage: 0, paid_amount: 0 });
-            
+
         } catch (e) {
             setError('Erreur réseau: ' + e.message);
         } finally {
@@ -166,14 +142,12 @@ export default function RentalsPage() {
         });
 
         if (res.ok) {
-            await fetchRentals();
-            await refreshVehicles();
+            await Promise.all([refreshRentals(), refreshVehicles()]);
         }
     };
 
     const handleCreate = () => {
         setForm(EMPTY_FORM);
-        setEditingId(null);
         setError('');
         setShowModal(true);
     };
@@ -216,19 +190,19 @@ export default function RentalsPage() {
         return matchSearch && matchStatus;
     });
 
-    const stats = {
+    const rentalStats = {
         total: rentals.length,
         ongoing: rentals.filter(r => r.status === 'ongoing').length,
         completed: rentals.filter(r => r.status === 'completed').length,
         revenue: rentals.filter(r => r.status === 'completed').reduce((sum, r) => sum + parseFloat(r.total_price), 0),
     };
 
-    if (loading || contextLoading) {
+    if (loading) {
         return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Chargement...</div></div>;
     }
 
     return (
-        <RoleProtector allowedRoles={['super_admin', 'company_admin', 'employee']}>
+        <RoleProtector allowedRoles={['company_admin', 'employee']}>
         <div>
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
@@ -255,19 +229,19 @@ export default function RentalsPage() {
 
             <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div className="text-3xl font-bold text-gray-800">{stats.total}</div>
+                    <div className="text-3xl font-bold text-gray-800">{rentalStats.total}</div>
                     <div className="text-xs text-gray-400 mt-1">Total locations</div>
                 </div>
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div className="text-3xl font-bold text-blue-600">{stats.ongoing}</div>
+                    <div className="text-3xl font-bold text-blue-600">{rentalStats.ongoing}</div>
                     <div className="text-xs text-gray-400 mt-1">En cours</div>
                 </div>
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div className="text-3xl font-bold text-green-600">{stats.completed}</div>
+                    <div className="text-3xl font-bold text-green-600">{rentalStats.completed}</div>
                     <div className="text-xs text-gray-400 mt-1">Terminées</div>
                 </div>
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div className="text-3xl font-bold text-purple-600">{stats.revenue.toLocaleString()} MAD</div>
+                    <div className="text-3xl font-bold text-purple-600">{rentalStats.revenue.toLocaleString()} MAD</div>
                     <div className="text-xs text-gray-400 mt-1">Revenu total</div>
                 </div>
             </div>

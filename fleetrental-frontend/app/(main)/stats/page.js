@@ -1,16 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getToken } from '../../../lib/api';
-import { useRouter } from 'next/navigation';
-import { BarChart2, Car, Wrench, TrendingUp, DollarSign } from 'lucide-react';
+import { useData } from '../../context/DataContext';
+import RoleProtector from '../../components/RoleProtector';
+import { Car, Wrench, TrendingUp, DollarSign } from 'lucide-react';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, Legend,
+    PieChart, Pie, Cell,
     BarChart, Bar
 } from 'recharts';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 const STATUS_COLORS = {
     available: { color: '#16a34a', label: 'Disponible' },
@@ -69,32 +66,9 @@ const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent })
 };
 
 export default function StatsPage() {
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
+    const { stats, loading } = useData();
 
-    useEffect(() => {
-        const token = getToken();
-        if (!token) { router.push('/login'); return; }
-
-        fetch(`${API_URL}/stats`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json',
-            }
-        })
-        .then(res => {
-            if (!res.ok) { router.push('/login'); return null; }
-            return res.json();
-        })
-        .then(data => {
-            if (data) setStats(data);
-            setLoading(false);
-        })
-        .catch(() => router.push('/login'));
-    }, [router]);
-
-    if (loading) {
+    if (loading || !stats) {
         return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Chargement...</div></div>;
     }
 
@@ -156,6 +130,7 @@ export default function StatsPage() {
     ];
 
     return (
+        <RoleProtector allowedRoles={['company_admin']}>
         <div>
             {/* Header */}
             <div className="mb-8">
@@ -331,5 +306,6 @@ export default function StatsPage() {
                 )}
             </div>
         </div>
+        </RoleProtector>
     );
 }

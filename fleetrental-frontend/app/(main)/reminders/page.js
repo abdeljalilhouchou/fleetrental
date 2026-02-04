@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useData } from "../../context/DataContext";
 import { getToken } from "../../../lib/api";
 import { useRouter } from "next/navigation";
+import RoleProtector from "../../components/RoleProtector";
 import {
   Bell,
   Plus,
@@ -284,6 +285,7 @@ export default function RemindersPage() {
   }
 
   return (
+    <RoleProtector allowedRoles={['company_admin', 'employee']}>
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -946,5 +948,6 @@ export default function RemindersPage() {
         </div>
       )}
     </div>
+    </RoleProtector>
   );
 }

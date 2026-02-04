@@ -4,6 +4,7 @@ import { useState, useRef, Fragment } from "react";
 import { useData } from "../../context/DataContext";
 import { getToken } from "../../../lib/api";
 import { useRouter } from "next/navigation";
+import RoleProtector from "../../components/RoleProtector";
 import {
   Wrench,
   Plus,
@@ -72,6 +73,7 @@ export default function MaintenancesPage() {
     user: currentUser,
     loading,
     refreshMaintenances,
+    refreshVehicles,
   } = useData();
 
   const [showModal, setShowModal] = useState(false);
@@ -117,7 +119,7 @@ export default function MaintenancesPage() {
         setError(data.message || "Erreur");
         return;
       }
-      await refreshMaintenances();
+      await Promise.all([refreshMaintenances(), refreshVehicles()]);
       setShowModal(false);
       setForm(EMPTY_FORM);
       setEditingId(null);
@@ -134,7 +136,7 @@ export default function MaintenancesPage() {
       method: "DELETE",
       headers: headers(),
     });
-    if (res.ok) await refreshMaintenances();
+    if (res.ok) await Promise.all([refreshMaintenances(), refreshVehicles()]);
   };
 
   const handleComplete = async (id) => {
@@ -142,7 +144,7 @@ export default function MaintenancesPage() {
       method: "POST",
       headers: headers(),
     });
-    if (res.ok) await refreshMaintenances();
+    if (res.ok) await Promise.all([refreshMaintenances(), refreshVehicles()]);
   };
 
   const handleEdit = (m) => {
@@ -252,6 +254,7 @@ export default function MaintenancesPage() {
   }
 
   return (
+    <RoleProtector allowedRoles={['company_admin', 'employee']}>
     <div>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
@@ -498,7 +501,7 @@ export default function MaintenancesPage() {
                                         </div>
                                       </div>
                                       <a
-                                        href={`${STORAGE_URL}${file.file_path}`}
+                                        href={`${STORAGE_URL}/storage/${file.file_path}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="p-1 text-blue-600 hover:bg-blue-50 rounded"
@@ -600,11 +603,13 @@ export default function MaintenancesPage() {
                     className="w-full px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm cursor-pointer"
                   >
                     <option value="">Sélectionner un véhicule</option>
-                    {vehicles.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.brand} {v.model} - {v.registration_number}
-                      </option>
-                    ))}
+                    {vehicles
+                      .filter((v) => v.status !== "rented")
+                      .map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.brand} {v.model} - {v.registration_number}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -712,5 +717,6 @@ export default function MaintenancesPage() {
         </div>
       )}
     </div>
+    </RoleProtector>
   );
 }

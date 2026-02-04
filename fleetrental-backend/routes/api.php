@@ -11,12 +11,22 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\SuperAdminStatsController;
 use App\Http\Controllers\RentalController;
+use App\Http\Controllers\ProfileController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+
+    // ═══════════════════════════════════════════════════════════
+    // PROFILE - Accessible par tous les utilisateurs authentifiés
+    // ═══════════════════════════════════════════════════════════
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
+    Route::put('/profile/preferences', [ProfileController::class, 'updatePreferences']);
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
 
     // ═══════════════════════════════════════════════════════════
     // ROUTES ACCESSIBLES PAR TOUS (super_admin, company_admin, employee)

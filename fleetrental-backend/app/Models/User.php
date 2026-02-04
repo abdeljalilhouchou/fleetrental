@@ -19,6 +19,15 @@ class User extends Authenticatable
         'password',
         'company_id',
         'role',
+        'phone',
+        'address',
+        'birthdate',
+        'avatar',
+        'theme',
+        'language',
+        'notifications_email',
+        'notifications_maintenance',
+        'notifications_rental',
     ];
 
     protected $hidden = [
@@ -31,6 +40,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'birthdate' => 'date',
+            'notifications_email' => 'boolean',
+            'notifications_maintenance' => 'boolean',
+            'notifications_rental' => 'boolean',
         ];
     }
     // Un utilisateur appartient à une entreprise

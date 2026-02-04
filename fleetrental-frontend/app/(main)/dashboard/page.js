@@ -1,12 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getToken } from '../../../lib/api';
 import { useRouter } from 'next/navigation';
+import { useData } from '../../context/DataContext';
 import RoleProtector from '../../components/RoleProtector';
 import { Car, Wrench, Plus, ArrowRight, CheckCircle2, Clock, AlertTriangle, XCircle } from 'lucide-react';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 const STATUS_CONFIG = {
     available:      { label: 'Disponible',     color: 'text-green-600 bg-green-50',  icon: CheckCircle2 },
@@ -16,34 +13,8 @@ const STATUS_CONFIG = {
 };
 
 export default function DashboardPage() {
-    const [user, setUser] = useState(null);
-    const [vehicles, setVehicles] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { user, vehicles } = useData();
     const router = useRouter();
-
-    useEffect(() => {
-        const token = getToken();
-        if (!token) { router.push('/login'); return; }
-
-        const headers = {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-        };
-
-        Promise.all([
-            fetch(`${API_URL}/me`, { headers }).then(r => r.ok ? r.json() : null),
-            fetch(`${API_URL}/vehicles`, { headers }).then(r => r.ok ? r.json() : []),
-        ]).then(([userData, vehicleData]) => {
-            if (!userData) { router.push('/login'); return; }
-            setUser(userData);
-            setVehicles(vehicleData || []);
-            setLoading(false);
-        }).catch(() => router.push('/login'));
-    }, [router]);
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Chargement...</div></div>;
-    }
 
     const stats = [
         { title: 'Véhicules Total', value: vehicles.length,                                          icon: Car,            iconColor: 'text-blue-600',   iconBg: 'bg-blue-50' },

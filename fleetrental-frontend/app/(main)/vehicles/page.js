@@ -197,7 +197,7 @@ export default function VehiclesPage() {
     }
 
     return (
-        <RoleProtector allowedRoles={['super_admin', 'company_admin', 'employee']}>
+        <RoleProtector allowedRoles={['company_admin', 'employee']}>
         <div>
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">

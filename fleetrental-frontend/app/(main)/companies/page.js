@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useData } from '../../context/DataContext';
 import { getToken } from '../../../lib/api';
-import { useRouter } from 'next/navigation';
 import RoleProtector from '../../components/RoleProtector';
 import {
     Building2, Plus, Edit2, Trash2, Search, Shield, XCircle,
-    AlertCircle, Car, Users, CheckCircle2, Mail, Phone, MapPin
+    AlertCircle, Car, Users, Mail, Phone, MapPin
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -19,39 +19,20 @@ const EMPTY_FORM = {
 };
 
 export default function CompaniesPage() {
-    const [companies, setCompanies] = useState([]);
-    const [loading, setLoading]     = useState(true);
+    const { companies, refreshCompanies } = useData();
+
     const [showModal, setShowModal] = useState(false);
     const [form, setForm]           = useState(EMPTY_FORM);
     const [editingId, setEditingId] = useState(null);
     const [error, setError]         = useState('');
     const [saving, setSaving]       = useState(false);
     const [search, setSearch]       = useState('');
-    const router                    = useRouter();
 
     const headers = () => ({
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${getToken()}`,
     });
-
-    const fetchData = async () => {
-        try {
-            const res = await fetch(`${API_URL}/companies`, { headers: headers() });
-            if (res.status === 401) { router.push('/login'); return; }
-            if (res.status === 403) { router.push('/dashboard'); return; }
-            setCompanies(await res.json());
-        } catch (e) {
-            setError('Erreur lors du chargement');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (!getToken()) { router.push('/login'); return; }
-        fetchData();
-    }, [router]);
 
     // ── CRUD ──────────────────────────────────────
     const handleSave = async () => {
@@ -70,7 +51,7 @@ export default function CompaniesPage() {
             }
             const data = await res.json();
             if (!res.ok) { setError(data.message || 'Erreur'); return; }
-            await fetchData();
+            await refreshCompanies();
             setShowModal(false);
             setForm(EMPTY_FORM);
             setEditingId(null);
@@ -89,7 +70,7 @@ export default function CompaniesPage() {
             setError(data.message);
             return;
         }
-        await fetchData();
+        await refreshCompanies();
     };
 
     const handleEdit = (c) => {
@@ -118,10 +99,6 @@ export default function CompaniesPage() {
 
     const totalVehicles = companies.reduce((s, c) => s + (c.vehicles_count || 0), 0);
     const totalUsers    = companies.reduce((s, c) => s + (c.users_count || 0), 0);
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Chargement...</div></div>;
-    }
 
     return (
         <RoleProtector allowedRoles={['super_admin']}>

@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { logout } from '../../lib/api';
 import { useData } from '../context/DataContext';
-import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText } from 'lucide-react';
+import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings } from 'lucide-react';
 
 // Navigation par rôle
 const NAV_BY_ROLE = {
@@ -38,11 +38,14 @@ const ROLE_LABELS = {
 export default function Sidebar() {
     const router   = useRouter();
     const pathname = usePathname();
-    const { user } = useData();
+    const { user, reminders } = useData();
 
     const role = user?.role || 'employee';
     const navItems = NAV_BY_ROLE[role] || NAV_BY_ROLE.employee;
     const roleInfo = ROLE_LABELS[role];
+
+    // Calculer les rappels en retard (utilise computed_status du backend)
+    const overdueRemindersCount = reminders?.filter((r) => r.computed_status === 'overdue').length || 0;
 
     return (
         <aside className="w-64 bg-slate-900 flex flex-col h-screen sticky top-0 shrink-0">
@@ -78,7 +81,9 @@ export default function Sidebar() {
                 {navItems.map((item) => {
                     const Icon     = item.icon;
                     const isActive = pathname === item.path;
-                    
+                    const isReminders = item.path === '/reminders';
+                    const showBadge = isReminders && overdueRemindersCount > 0;
+
                     // Couleur selon le rôle
                     let activeColor = 'bg-blue-600 shadow-blue-600/20';
                     if (role === 'super_admin') activeColor = 'bg-purple-600 shadow-purple-600/20';
@@ -92,7 +97,12 @@ export default function Sidebar() {
                                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                         >
                             <Icon size={18} />
-                            <span>{item.label}</span>
+                            <span className="flex-1 text-left">{item.label}</span>
+                            {showBadge && (
+                                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                                    {overdueRemindersCount > 99 ? '99+' : overdueRemindersCount}
+                                </span>
+                            )}
                         </button>
                     );
                 })}
@@ -100,11 +110,22 @@ export default function Sidebar() {
 
             {/* User */}
             <div className="p-4 border-t border-slate-800">
-                <div className="flex items-center gap-3 mb-3 px-2">
-                    <div className="w-9 h-9 bg-slate-700 rounded-full flex items-center justify-center ring-2 ring-slate-600">
-                        <User size={16} className="text-slate-300" />
+                <button
+                    onClick={() => router.push('/profile')}
+                    className="w-full flex items-center gap-3 mb-3 px-2 py-2 rounded-lg hover:bg-slate-800 transition group"
+                >
+                    <div className="w-9 h-9 bg-slate-700 rounded-full flex items-center justify-center ring-2 ring-slate-600 group-hover:ring-blue-500 transition overflow-hidden">
+                        {user?.avatar ? (
+                            <img
+                                src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${user.avatar}`}
+                                alt="Avatar"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <User size={16} className="text-slate-300" />
+                        )}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 text-left">
                         <div className="text-sm font-semibold text-white truncate flex items-center gap-1.5">
                             {user?.name || 'Utilisateur'}
                             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${roleInfo?.color} text-white`}>
@@ -113,7 +134,8 @@ export default function Sidebar() {
                         </div>
                         <div className="text-xs text-slate-500 truncate">{user?.email || ''}</div>
                     </div>
-                </div>
+                    <Settings size={14} className="text-slate-500 group-hover:text-blue-400 transition" />
+                </button>
                 <button onClick={logout}
                     className="w-full flex items-center gap-2 text-slate-400 hover:text-red-400 text-sm transition px-3 py-2 rounded-lg hover:bg-slate-800">
                     <LogOut size={16} />

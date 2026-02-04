@@ -80,3 +80,62 @@ export async function apiRequest(url, options = {}) {
 
     return response.json();
 }
+
+// ═══════════════════════════════════════════════════════════
+// PROFILE API
+// ═══════════════════════════════════════════════════════════
+
+// Mise à jour du profil (nom, téléphone, adresse, date de naissance)
+export async function updateProfile(data) {
+    return apiRequest('/profile', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+}
+
+// Mise à jour de l'avatar
+export async function updateAvatar(file) {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await fetch(`${API_URL}/profile/avatar`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+        },
+        body: formData,
+    });
+
+    if (response.status === 401) {
+        document.cookie = 'token=; path=/; max-age=0';
+        window.location.href = '/login';
+        throw new Error('Non authentifié');
+    }
+
+    return response.json();
+}
+
+// Suppression de l'avatar
+export async function removeAvatar() {
+    return apiRequest('/profile/avatar', {
+        method: 'DELETE',
+    });
+}
+
+// Mise à jour des préférences (thème, langue, notifications)
+export async function updatePreferences(data) {
+    return apiRequest('/profile/preferences', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+}
+
+// Changement de mot de passe
+export async function updatePassword(data) {
+    return apiRequest('/profile/password', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+}

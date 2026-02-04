@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useData } from '../../context/DataContext';
 import { getToken } from '../../../lib/api';
-import { useRouter } from 'next/navigation';
 import RoleProtector from '../../components/RoleProtector';
 import {
     Users, Plus, Edit2, Trash2, Search, Shield, XCircle,
@@ -32,54 +32,20 @@ const ROLE_COLORS = {
 };
 
 export default function UsersPage() {
-    const [users, setUsers]         = useState([]);
-    const [companies, setCompanies] = useState([]);
-    const [currentUser, setCurrentUser] = useState(null);
-    const [loading, setLoading]     = useState(true);
+    const { user: currentUser, users, companies, loading, refreshUsers } = useData();
+
     const [showModal, setShowModal] = useState(false);
     const [form, setForm]           = useState(EMPTY_FORM);
     const [editingId, setEditingId] = useState(null);
     const [error, setError]         = useState('');
     const [saving, setSaving]       = useState(false);
     const [search, setSearch]       = useState('');
-    const router                    = useRouter();
 
     const headers = () => ({
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${getToken()}`,
     });
-
-    const fetchData = async () => {
-        try {
-            const [usersRes, meRes] = await Promise.all([
-                fetch(`${API_URL}/users`, { headers: headers() }),
-                fetch(`${API_URL}/me`, { headers: headers() }),
-            ]);
-            if (usersRes.status === 401) { router.push('/login'); return; }
-            if (usersRes.status === 403) { router.push('/dashboard'); return; }
-            setUsers(await usersRes.json());
-            if (meRes.ok) {
-                const userData = await meRes.json();
-                setCurrentUser(userData);
-                
-                // Si super_admin, charger la liste des entreprises
-                if (userData.role === 'super_admin') {
-                    const companiesRes = await fetch(`${API_URL}/companies`, { headers: headers() });
-                    if (companiesRes.ok) setCompanies(await companiesRes.json());
-                }
-            }
-        } catch (e) {
-            setError('Erreur lors du chargement');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (!getToken()) { router.push('/login'); return; }
-        fetchData();
-    }, [router]);
 
     // ── CRUD ──────────────────────────────────────
     const handleSave = async () => {
@@ -98,7 +64,7 @@ export default function UsersPage() {
             }
             const data = await res.json();
             if (!res.ok) { setError(data.message || 'Erreur'); return; }
-            await fetchData();
+            await refreshUsers();
             setShowModal(false);
             setForm(EMPTY_FORM);
             setEditingId(null);
@@ -118,7 +84,7 @@ export default function UsersPage() {
             setTimeout(() => setError(''), 3000);
             return;
         }
-        await fetchData();
+        await refreshUsers();
     };
 
     const handleEdit = (u) => {
@@ -148,10 +114,6 @@ export default function UsersPage() {
 
     const adminCount    = users.filter(u => u.role === 'company_admin').length;
     const employeeCount = users.filter(u => u.role === 'employee').length;
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Chargement...</div></div>;
-    }
 
     return (
         <RoleProtector allowedRoles={['super_admin', 'company_admin']}>

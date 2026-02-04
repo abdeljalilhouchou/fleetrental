@@ -1,53 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken } from '@/lib/api';
+import { useData } from '@/app/context/DataContext';
 import RoleProtector from '@/app/components/RoleProtector';
-import { 
-    Building2, Car, Users, Wrench, CheckCircle2, Clock, 
-    AlertTriangle, XCircle, DollarSign, TrendingUp 
+import {
+    Building2, Car, Users, Wrench, CheckCircle2, Clock,
+    AlertTriangle, XCircle, DollarSign, TrendingUp
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-
 export default function SuperAdminDashboard() {
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { superAdminStats: stats } = useData();
     const router = useRouter();
-
-    useEffect(() => {
-        const token = getToken();
-        if (!token) { router.push('/login'); return; }
-
-        const fetchStats = async () => {
-            try {
-                const res = await fetch(`${API_URL}/super-admin/stats`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
-                    },
-                });
-
-                if (res.status === 401) { router.push('/login'); return; }
-                if (res.status === 403) { router.push('/companies'); return; }
-
-                if (res.ok) {
-                    setStats(await res.json());
-                }
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchStats();
-    }, [router]);
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Chargement...</div></div>;
-    }
 
     const mainStats = [
         { 
