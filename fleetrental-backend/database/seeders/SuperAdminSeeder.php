@@ -10,11 +10,14 @@ class SuperAdminSeeder extends Seeder
 {
     public function run()
     {
-        User::create([
-            'name' => 'Super Admin',
-            'email' => 'admin@fleetrental.com',
-            'password' => Hash::make('admin123'),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@fleetrental.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('admin123'),
+                'role' => 'super_admin',
+            ]
+        );
 
         $this->command->info('✓ Super Admin créé avec succès !');
         $this->command->info('  Email    : admin@fleetrental.com');
