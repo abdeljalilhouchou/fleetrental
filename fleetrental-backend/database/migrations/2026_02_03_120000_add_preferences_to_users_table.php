@@ -10,11 +10,14 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // avatar existe déjà, on ajoute uniquement les préférences
-            $table->string('theme')->default('light')->after('avatar');
-            $table->string('language')->default('fr')->after('theme');
-            $table->boolean('notifications_email')->default(true)->after('language');
-            $table->boolean('notifications_maintenance')->default(true)->after('notifications_email');
-            $table->boolean('notifications_rental')->default(true)->after('notifications_maintenance');
+            if (!Schema::hasColumn('users', 'avatar')) {
+                $table->string('avatar')->nullable();
+            }
+            $table->string('theme')->default('light');
+            $table->string('language')->default('fr');
+            $table->boolean('notifications_email')->default(true);
+            $table->boolean('notifications_maintenance')->default(true);
+            $table->boolean('notifications_rental')->default(true);
         });
     }
 
