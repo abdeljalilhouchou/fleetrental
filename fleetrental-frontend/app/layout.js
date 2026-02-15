@@ -7,7 +7,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="fr">
+        <html lang="fr" suppressHydrationWarning>
+            <head>
+                <script dangerouslySetInnerHTML={{
+                    __html: `try{if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`
+                }} />
+            </head>
             <body className="antialiased">
                 {children}
             </body>

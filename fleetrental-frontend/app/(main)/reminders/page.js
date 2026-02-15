@@ -57,20 +57,20 @@ const DEFAULT_INTERVALS = {
 const STATUS_CONFIG = {
   overdue: {
     label: "En retard",
-    textColor: "text-red-700",
-    bgColor: "bg-red-50",
+    textColor: "text-red-700 dark:text-red-300",
+    bgColor: "bg-red-50 dark:bg-red-900/30",
     icon: AlertTriangle,
   },
   upcoming: {
     label: "À venir",
-    textColor: "text-amber-700",
-    bgColor: "bg-amber-50",
+    textColor: "text-amber-700 dark:text-amber-300",
+    bgColor: "bg-amber-50 dark:bg-amber-900/30",
     icon: Clock,
   },
   ok: {
     label: "OK",
-    textColor: "text-green-700",
-    bgColor: "bg-green-50",
+    textColor: "text-green-700 dark:text-green-300",
+    bgColor: "bg-green-50 dark:bg-green-900/30",
     icon: CheckCircle2,
   },
 };
@@ -290,10 +290,10 @@ export default function RemindersPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
             Rappels de maintenance
           </h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
             {reminders.length} rappel(s) actif(s)
           </p>
         </div>
@@ -310,16 +310,16 @@ export default function RemindersPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-              <Bell size={20} className="text-blue-600" />
+            <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+              <Bell size={20} className="text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-800">
+          <div className="text-3xl font-bold text-gray-800 dark:text-white">
             {reminders.length}
           </div>
-          <div className="text-xs text-gray-400 mt-1">Total rappels</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Total rappels</div>
         </div>
 
         <button
@@ -327,15 +327,15 @@ export default function RemindersPage() {
             setFilterStatus(filterStatus === "overdue" ? "all" : "overdue")
           }
           className={`rounded-2xl border shadow-sm p-5 text-left transition
-                        ${filterStatus === "overdue" ? "bg-red-50 border-red-200" : "bg-white border-gray-100 hover:border-red-200"}`}
+                        ${filterStatus === "overdue" ? "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800" : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-800"}`}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-              <AlertTriangle size={20} className="text-red-600" />
+            <div className="w-10 h-10 bg-red-50 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
+              <AlertTriangle size={20} className="text-red-600 dark:text-red-400" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-800">{overdueCount}</div>
-          <div className="text-xs text-gray-400 mt-1">En retard</div>
+          <div className="text-3xl font-bold text-gray-800 dark:text-white">{overdueCount}</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">En retard</div>
         </button>
 
         <button
@@ -343,31 +343,31 @@ export default function RemindersPage() {
             setFilterStatus(filterStatus === "upcoming" ? "all" : "upcoming")
           }
           className={`rounded-2xl border shadow-sm p-5 text-left transition
-                        ${filterStatus === "upcoming" ? "bg-amber-50 border-amber-200" : "bg-white border-gray-100 hover:border-amber-200"}`}
+                        ${filterStatus === "upcoming" ? "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800" : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700 hover:border-amber-200 dark:hover:border-amber-800"}`}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
-              <Clock size={20} className="text-amber-600" />
+            <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
+              <Clock size={20} className="text-amber-600 dark:text-amber-400" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-800">
+          <div className="text-3xl font-bold text-gray-800 dark:text-white">
             {upcomingCount}
           </div>
-          <div className="text-xs text-gray-400 mt-1">À venir</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">À venir</div>
         </button>
 
         <button
           onClick={() => setFilterStatus(filterStatus === "ok" ? "all" : "ok")}
           className={`rounded-2xl border shadow-sm p-5 text-left transition
-                        ${filterStatus === "ok" ? "bg-green-50 border-green-200" : "bg-white border-gray-100 hover:border-green-200"}`}
+                        ${filterStatus === "ok" ? "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800" : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700 hover:border-green-200 dark:hover:border-green-800"}`}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-              <CheckCircle2 size={20} className="text-green-600" />
+            <div className="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+              <CheckCircle2 size={20} className="text-green-600 dark:text-green-400" />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-800">{okCount}</div>
-          <div className="text-xs text-gray-400 mt-1">OK</div>
+          <div className="text-3xl font-bold text-gray-800 dark:text-white">{okCount}</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">OK</div>
         </button>
       </div>
 
@@ -376,21 +376,21 @@ export default function RemindersPage() {
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un rappel..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800 placeholder-gray-300 shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white placeholder-gray-300 dark:placeholder-gray-500 shadow-sm"
           />
         </div>
         <div className="relative">
           <select
             value={filterVehicle}
             onChange={(e) => setFilterVehicle(e.target.value)}
-            className="appearance-none pl-3.5 pr-8 py-2.5 bg-white rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-600 shadow-sm cursor-pointer"
+            className="appearance-none pl-3.5 pr-8 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-600 dark:text-gray-300 shadow-sm cursor-pointer"
           >
             <option value="all">Tous les véhicules</option>
             {vehicles.map((v) => (
@@ -401,7 +401,7 @@ export default function RemindersPage() {
           </select>
           <ChevronDown
             size={14}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
           />
         </div>
         {(filterVehicle !== "all" || search || filterStatus !== "all") && (
@@ -419,14 +419,14 @@ export default function RemindersPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Bell size={28} className="text-gray-300" />
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Bell size={28} className="text-gray-300 dark:text-gray-600" />
             </div>
-            <p className="text-gray-500 font-semibold">Aucun rappel trouvé</p>
-            <p className="text-gray-300 text-sm mt-1">
+            <p className="text-gray-500 dark:text-gray-400 font-semibold">Aucun rappel trouvé</p>
+            <p className="text-gray-300 dark:text-gray-600 text-sm mt-1">
               {search || filterVehicle !== "all" || filterStatus !== "all"
                 ? "Essayez de modifier votre recherche"
                 : "Créez votre premier rappel de maintenance"}
@@ -435,23 +435,23 @@ export default function RemindersPage() {
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+              <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                   Véhicule
                 </th>
-                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                   Type
                 </th>
-                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                   Statut
                 </th>
-                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                   Kilométrage
                 </th>
-                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                   Date limite
                 </th>
-                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -472,25 +472,25 @@ export default function RemindersPage() {
                 return (
                   <tr
                     key={r.id}
-                    className="border-b border-gray-50 hover:bg-gray-50 transition"
+                    className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-                          <Car size={16} className="text-blue-600" />
+                        <div className="w-9 h-9 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                          <Car size={16} className="text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-gray-800">
+                          <div className="text-sm font-semibold text-gray-800 dark:text-white">
                             {vehicle?.brand} {vehicle?.model}
                           </div>
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs text-gray-400 dark:text-gray-500">
                             {vehicle?.registration_number}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700">
+                      <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                         {r.type}
                       </span>
                     </td>
@@ -505,9 +505,9 @@ export default function RemindersPage() {
                     <td className="px-6 py-4">
                       {r.next_due_mileage && vehicle?.current_mileage !== undefined ? (
                         <div>
-                          <div className="text-sm font-semibold text-gray-800">
+                          <div className="text-sm font-semibold text-gray-800 dark:text-white">
                             {Number(r.next_due_mileage).toLocaleString()}{" "}
-                            <span className="text-gray-400 font-normal text-xs">
+                            <span className="text-gray-400 dark:text-gray-500 font-normal text-xs">
                               km
                             </span>
                           </div>
@@ -520,13 +520,13 @@ export default function RemindersPage() {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-gray-300 text-sm">—</span>
+                        <span className="text-gray-300 dark:text-gray-600 text-sm">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
                       {r.next_due_date ? (
                         <div>
-                          <div className="text-sm font-semibold text-gray-800">
+                          <div className="text-sm font-semibold text-gray-800 dark:text-white">
                             {new Date(r.next_due_date).toLocaleDateString(
                               "fr-FR",
                               {
@@ -545,7 +545,7 @@ export default function RemindersPage() {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-gray-300 text-sm">—</span>
+                        <span className="text-gray-300 dark:text-gray-600 text-sm">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -554,7 +554,7 @@ export default function RemindersPage() {
                         {isAdmin && canRenew && (
                           <button
                             onClick={() => openRenewModal(r)}
-                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition"
                             title="Renouveler le rappel"
                           >
                             <RotateCcw size={16} />
@@ -565,7 +565,7 @@ export default function RemindersPage() {
                         {isAdmin && (
                           <button
                             onClick={() => handleEdit(r)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition"
                             title="Modifier"
                           >
                             <Edit2 size={16} />
@@ -576,7 +576,7 @@ export default function RemindersPage() {
                         {isAdmin && (
                           <button
                             onClick={() => handleDelete(r.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition"
                             title="Supprimer"
                           >
                             <Trash2 size={16} />
@@ -595,30 +595,30 @@ export default function RemindersPage() {
       {/* ── Modal Créer / Modifier - SEULEMENT ADMINS ── */}
       {showModal && isAdmin && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${editingId ? "bg-blue-50" : "bg-amber-50"}`}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${editingId ? "bg-blue-50 dark:bg-blue-900/30" : "bg-amber-50 dark:bg-amber-900/30"}`}
                 >
                   {editingId ? (
-                    <Edit2 size={18} className="text-blue-600" />
+                    <Edit2 size={18} className="text-blue-600 dark:text-blue-400" />
                   ) : (
-                    <Bell size={18} className="text-amber-600" />
+                    <Bell size={18} className="text-amber-600 dark:text-amber-400" />
                   )}
                 </div>
                 <div>
-                  <h2 className="font-bold text-gray-800">
+                  <h2 className="font-bold text-gray-800 dark:text-white">
                     {editingId ? "Modifier" : "Nouveau"} rappel
                   </h2>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
                     Définissez par kilométrage, date, ou les deux
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-300 hover:text-gray-500 p-1 rounded-lg hover:bg-gray-100 transition"
+                className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
               >
                 <XCircle size={20} />
               </button>
@@ -626,16 +626,16 @@ export default function RemindersPage() {
 
             <div className="p-6 space-y-4">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg px-3 py-2 flex items-center gap-2">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs rounded-lg px-3 py-2 flex items-center gap-2">
                   <AlertCircle size={14} /> {error}
                 </div>
               )}
 
-              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                  <Bell size={16} className="text-blue-600" />
+              <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800/50 rounded-lg flex items-center justify-center shrink-0">
+                  <Bell size={16} className="text-blue-600 dark:text-blue-400" />
                 </div>
-                <p className="text-xs text-blue-700">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
                   🔴 <strong>En retard</strong> si dépassé · 🟡{" "}
                   <strong>À venir</strong> si &lt; 500 km ou 7 jours · 🟢{" "}
                   <strong>OK</strong> sinon
@@ -643,20 +643,20 @@ export default function RemindersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                   Véhicule
                 </label>
                 <div className="relative">
                   <Car
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500"
                   />
                   <select
                     value={form.vehicle_id}
                     onChange={(e) =>
                       setForm({ ...form, vehicle_id: e.target.value })
                     }
-                    className="appearance-none w-full pl-10 pr-8 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800 bg-gray-50 focus:bg-white cursor-pointer"
+                    className="appearance-none w-full pl-10 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 cursor-pointer"
                   >
                     <option value="">Choisir un véhicule...</option>
                     {vehicles.map((v) => (
@@ -667,24 +667,24 @@ export default function RemindersPage() {
                   </select>
                   <ChevronDown
                     size={14}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                   Type
                 </label>
                 <div className="relative">
                   <Bell
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500"
                   />
                   <select
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="appearance-none w-full pl-10 pr-8 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800 bg-gray-50 focus:bg-white cursor-pointer"
+                    className="appearance-none w-full pl-10 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 cursor-pointer"
                   >
                     <option value="">Choisir un type...</option>
                     {REMINDER_TYPES.map((t) => (
@@ -695,13 +695,13 @@ export default function RemindersPage() {
                   </select>
                   <ChevronDown
                     size={14}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -711,15 +711,15 @@ export default function RemindersPage() {
                   }
                   placeholder="Ex: Vidange à faire tous les 10 000 km..."
                   rows={2}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800 placeholder-gray-300 bg-gray-50 focus:bg-white transition resize-none"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white placeholder-gray-300 dark:placeholder-gray-500 bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                     Kilométrage limite{" "}
-                    <span className="ml-1 font-normal text-gray-300 normal-case">
+                    <span className="ml-1 font-normal text-gray-300 dark:text-gray-600 normal-case">
                       (optionnel)
                     </span>
                   </label>
@@ -730,13 +730,13 @@ export default function RemindersPage() {
                       setForm({ ...form, next_due_mileage: e.target.value })
                     }
                     placeholder="Ex: 50000"
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800 placeholder-gray-300 bg-gray-50 focus:bg-white transition"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white placeholder-gray-300 dark:placeholder-gray-500 bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                     Date limite{" "}
-                    <span className="ml-1 font-normal text-gray-300 normal-case">
+                    <span className="ml-1 font-normal text-gray-300 dark:text-gray-600 normal-case">
                       (optionnel)
                     </span>
                   </label>
@@ -746,13 +746,13 @@ export default function RemindersPage() {
                     onChange={(e) =>
                       setForm({ ...form, next_due_date: e.target.value })
                     }
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800 bg-gray-50 focus:bg-white transition"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-100">
+            <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={handleSave}
                 disabled={saving}
@@ -766,7 +766,7 @@ export default function RemindersPage() {
               </button>
               <button
                 onClick={() => setShowModal(false)}
-                className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition"
+                className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition"
               >
                 Annuler
               </button>
@@ -778,17 +778,17 @@ export default function RemindersPage() {
       {/* ── Modal Renouveler - SEULEMENT ADMINS ── */}
       {showRenewModal && renewingReminder && isAdmin && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                  <RotateCcw size={18} className="text-green-600" />
+                <div className="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                  <RotateCcw size={18} className="text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-gray-800">
+                  <h2 className="font-bold text-gray-800 dark:text-white">
                     Renouveler le rappel
                   </h2>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
                     {renewingReminder.type} · {renewingReminder.vehicle?.brand}{" "}
                     {renewingReminder.vehicle?.model}
                   </p>
@@ -796,7 +796,7 @@ export default function RemindersPage() {
               </div>
               <button
                 onClick={() => setShowRenewModal(false)}
-                className="text-gray-300 hover:text-gray-500 p-1 rounded-lg hover:bg-gray-100 transition"
+                className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
               >
                 <XCircle size={20} />
               </button>
@@ -804,21 +804,21 @@ export default function RemindersPage() {
 
             <div className="p-6 space-y-4">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg px-3 py-2 flex items-center gap-2">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs rounded-lg px-3 py-2 flex items-center gap-2">
                   <AlertCircle size={14} /> {error}
                 </div>
               )}
 
               {/* Info de la situation actuelle */}
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                   Situation actuelle
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     Kilométrage véhicule
                   </span>
-                  <span className="text-xs font-bold text-gray-800">
+                  <span className="text-xs font-bold text-gray-800 dark:text-white">
                     {Number(
                       renewingReminder.vehicle?.current_mileage || 0,
                     ).toLocaleString()}{" "}
@@ -827,10 +827,10 @@ export default function RemindersPage() {
                 </div>
                 {renewingReminder.next_due_mileage && (
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       Limite actuelle
                     </span>
-                    <span className="text-xs font-bold text-red-600">
+                    <span className="text-xs font-bold text-red-600 dark:text-red-400">
                       {Number(
                         renewingReminder.next_due_mileage,
                       ).toLocaleString()}{" "}
@@ -840,8 +840,8 @@ export default function RemindersPage() {
                 )}
                 {renewingReminder.next_due_date && (
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">Date actuelle</span>
-                    <span className="text-xs font-bold text-red-600">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Date actuelle</span>
+                    <span className="text-xs font-bold text-red-600 dark:text-red-400">
                       {new Date(
                         renewingReminder.next_due_date,
                       ).toLocaleDateString("fr-FR", {
@@ -857,7 +857,7 @@ export default function RemindersPage() {
               {/* Intervalle kilométrage */}
               {renewingReminder.next_due_mileage && (
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                     Intervalle kilométrage
                   </label>
                   <div className="relative">
@@ -870,15 +870,15 @@ export default function RemindersPage() {
                           mileage_interval: e.target.value,
                         })
                       }
-                      className="w-full px-3 pr-16 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800 bg-gray-50 focus:bg-white transition"
+                      className="w-full px-3 pr-16 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition"
                     />
-                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 font-semibold">
                       km
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1.5">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
                     Nouvelle limite :{" "}
-                    <span className="font-bold text-blue-600">
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
                       {renewForm.mileage_interval
                         ? `${(parseInt(renewingReminder.vehicle?.current_mileage || 0) + parseInt(renewForm.mileage_interval || 0)).toLocaleString()} km`
                         : "—"}
@@ -890,7 +890,7 @@ export default function RemindersPage() {
               {/* Intervalle date */}
               {renewingReminder.next_due_date && (
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                     Intervalle date
                   </label>
                   <div className="relative">
@@ -903,15 +903,15 @@ export default function RemindersPage() {
                           date_months: e.target.value,
                         })
                       }
-                      className="w-full px-3 pr-16 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800 bg-gray-50 focus:bg-white transition"
+                      className="w-full px-3 pr-16 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition"
                     />
-                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500 font-semibold">
                       mois
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1.5">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
                     Nouvelle date :{" "}
-                    <span className="font-bold text-blue-600">
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
                       {renewForm.date_months
                         ? new Date(
                             Date.now() +
@@ -928,7 +928,7 @@ export default function RemindersPage() {
               )}
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-100">
+            <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={handleRenew}
                 disabled={saving}
@@ -939,7 +939,7 @@ export default function RemindersPage() {
               </button>
               <button
                 onClick={() => setShowRenewModal(false)}
-                className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition"
+                className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition"
               >
                 Annuler
               </button>

@@ -10,6 +10,21 @@ import {
     CheckCircle, AlertCircle
 } from 'lucide-react';
 
+function Message({ section, messages }) {
+    const msg = messages[section];
+    if (!msg) return null;
+    return (
+        <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+            msg.type === 'success'
+                ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+        }`}>
+            {msg.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+            {msg.text}
+        </div>
+    );
+}
+
 const ROLE_LABELS = {
     super_admin: { label: 'Super Admin', color: 'bg-purple-600' },
     company_admin: { label: 'Admin Entreprise', color: 'bg-green-600' },
@@ -72,14 +87,17 @@ export default function ProfilePage() {
         }
     }, [user]);
 
-    // Appliquer le thème
+    // Appliquer le thème (seulement après chargement utilisateur pour éviter flash)
     useEffect(() => {
+        if (!user) return;
         if (preferences.theme === 'dark') {
             document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
         } else {
             document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
         }
-    }, [preferences.theme]);
+    }, [preferences.theme, user]);
 
     const showMessage = (section, type, text) => {
         setMessages(prev => ({ ...prev, [section]: { type, text } }));
@@ -184,42 +202,28 @@ export default function ProfilePage() {
 
     const roleInfo = ROLE_LABELS[user?.role] || ROLE_LABELS.employee;
 
-    // Composant Message
-    const Message = ({ section }) => {
-        const msg = messages[section];
-        if (!msg) return null;
-        return (
-            <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                msg.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
-                {msg.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                {msg.text}
-            </div>
-        );
-    };
-
     return (
         <RoleProtector allowedRoles={['super_admin', 'company_admin', 'employee']}>
         <div className="p-6 max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold text-slate-900 mb-6">Mon Profil</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Mon Profil</h1>
 
             <div className="space-y-6">
                 {/* Section Informations du compte (lecture seule) */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <Shield className="text-slate-600" size={20} />
-                        <h2 className="text-lg font-semibold text-slate-900">Informations du compte</h2>
+                        <Shield className="text-slate-600 dark:text-gray-300" size={20} />
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Informations du compte</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-slate-50 rounded-lg p-4">
-                            <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
+                        <div className="bg-slate-50 dark:bg-gray-800 rounded-lg p-4">
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 text-sm mb-1">
                                 <Mail size={14} />
                                 Email
                             </div>
-                            <p className="font-medium text-slate-900">{user?.email}</p>
+                            <p className="font-medium text-slate-900 dark:text-white">{user?.email}</p>
                         </div>
-                        <div className="bg-slate-50 rounded-lg p-4">
-                            <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
+                        <div className="bg-slate-50 dark:bg-gray-800 rounded-lg p-4">
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 text-sm mb-1">
                                 <User size={14} />
                                 Rôle
                             </div>
@@ -228,31 +232,31 @@ export default function ProfilePage() {
                             </span>
                         </div>
                         {user?.company && (
-                            <div className="bg-slate-50 rounded-lg p-4">
-                                <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
+                            <div className="bg-slate-50 dark:bg-gray-800 rounded-lg p-4">
+                                <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 text-sm mb-1">
                                     <Building2 size={14} />
                                     Entreprise
                                 </div>
-                                <p className="font-medium text-slate-900">{user.company.name}</p>
+                                <p className="font-medium text-slate-900 dark:text-white">{user.company.name}</p>
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Section Avatar */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <Camera className="text-slate-600" size={20} />
-                        <h2 className="text-lg font-semibold text-slate-900">Photo de profil</h2>
+                        <Camera className="text-slate-600 dark:text-gray-300" size={20} />
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Photo de profil</h2>
                     </div>
-                    <Message section="avatar" />
+                    <Message section="avatar" messages={messages} />
                     <div className="flex items-center gap-6 mt-4">
                         <div className="relative">
-                            <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden ring-4 ring-slate-100">
+                            <div className="w-24 h-24 rounded-full bg-slate-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden ring-4 ring-slate-100 dark:ring-gray-700">
                                 {avatarPreview ? (
                                     <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
-                                    <User size={40} className="text-slate-400" />
+                                    <User size={40} className="text-slate-400 dark:text-gray-500" />
                                 )}
                             </div>
                             {loading.avatar && (
@@ -280,71 +284,71 @@ export default function ProfilePage() {
                                 <button
                                     onClick={handleAvatarRemove}
                                     disabled={loading.avatar}
-                                    className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+                                    className="px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition text-sm font-medium flex items-center gap-2 disabled:opacity-50"
                                 >
                                     <Trash2 size={14} />
                                     Supprimer
                                 </button>
                             )}
-                            <p className="text-xs text-slate-500">JPG ou PNG. Max 2MB.</p>
+                            <p className="text-xs text-slate-500 dark:text-gray-400">JPG ou PNG. Max 2MB.</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Section Informations personnelles */}
-                <form onSubmit={handleProfileSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <form onSubmit={handleProfileSubmit} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <User className="text-slate-600" size={20} />
-                        <h2 className="text-lg font-semibold text-slate-900">Informations personnelles</h2>
+                        <User className="text-slate-600 dark:text-gray-300" size={20} />
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Informations personnelles</h2>
                     </div>
-                    <Message section="profile" />
+                    <Message section="profile" messages={messages} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Nom complet</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">Nom complet</label>
                             <div className="relative">
-                                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
                                 <input
                                     type="text"
                                     value={profileForm.name}
                                     onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                     required
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Téléphone</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">Téléphone</label>
                             <div className="relative">
-                                <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
                                 <input
                                     type="tel"
                                     value={profileForm.phone}
                                     onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                     placeholder="+33 6 12 34 56 78"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Date de naissance</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">Date de naissance</label>
                             <div className="relative">
-                                <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
                                 <input
                                     type="date"
                                     value={profileForm.birthdate}
                                     onChange={(e) => setProfileForm(prev => ({ ...prev, birthdate: e.target.value }))}
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                 />
                             </div>
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Adresse</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">Adresse</label>
                             <div className="relative">
-                                <MapPin size={16} className="absolute left-3 top-3 text-slate-400" />
+                                <MapPin size={16} className="absolute left-3 top-3 text-slate-400 dark:text-gray-500" />
                                 <textarea
                                     value={profileForm.address}
                                     onChange={(e) => setProfileForm(prev => ({ ...prev, address: e.target.value }))}
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white resize-none"
                                     rows={2}
                                     placeholder="123 Rue Example, 75001 Paris"
                                 />
@@ -368,76 +372,76 @@ export default function ProfilePage() {
                 </form>
 
                 {/* Section Sécurité */}
-                <form onSubmit={handlePasswordSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <form onSubmit={handlePasswordSubmit} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <Lock className="text-slate-600" size={20} />
-                        <h2 className="text-lg font-semibold text-slate-900">Sécurité</h2>
+                        <Lock className="text-slate-600 dark:text-gray-300" size={20} />
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Sécurité</h2>
                     </div>
-                    <Message section="password" />
+                    <Message section="password" messages={messages} />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Mot de passe actuel</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">Mot de passe actuel</label>
                             <div className="relative">
-                                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
                                 <input
                                     type={showCurrentPassword ? 'text' : 'password'}
                                     value={passwordForm.current_password}
                                     onChange={(e) => setPasswordForm(prev => ({ ...prev, current_password: e.target.value }))}
-                                    className="w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full pl-10 pr-10 py-2 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                     required
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300"
                                 >
                                     {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Nouveau mot de passe</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">Nouveau mot de passe</label>
                             <div className="relative">
-                                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
                                 <input
                                     type={showNewPassword ? 'text' : 'password'}
                                     value={passwordForm.password}
                                     onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
-                                    className="w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full pl-10 pr-10 py-2 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                     required
                                     minLength={6}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300"
                                 >
                                     {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Confirmer le mot de passe</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1">Confirmer le mot de passe</label>
                             <div className="relative">
-                                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
                                 <input
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     value={passwordForm.password_confirmation}
                                     onChange={(e) => setPasswordForm(prev => ({ ...prev, password_confirmation: e.target.value }))}
-                                    className="w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full pl-10 pr-10 py-2 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                                     required
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300"
                                 >
                                     {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
                         </div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-2">Minimum 6 caractères</p>
+                    <p className="text-xs text-slate-500 dark:text-gray-400 mt-2">Minimum 6 caractères</p>
                     <div className="mt-4 flex justify-end">
                         <button
                             type="submit"
@@ -455,25 +459,25 @@ export default function ProfilePage() {
                 </form>
 
                 {/* Section Préférences */}
-                <form onSubmit={handlePreferencesSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <form onSubmit={handlePreferencesSubmit} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <Sun className="text-slate-600" size={20} />
-                        <h2 className="text-lg font-semibold text-slate-900">Préférences</h2>
+                        <Sun className="text-slate-600 dark:text-gray-300" size={20} />
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Préférences</h2>
                     </div>
-                    <Message section="preferences" />
+                    <Message section="preferences" messages={messages} />
 
                     <div className="space-y-6 mt-4">
                         {/* Thème */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-3">Thème</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-3">Thème</label>
                             <div className="flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setPreferences(prev => ({ ...prev, theme: 'light' }))}
                                     className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition ${
                                         preferences.theme === 'light'
-                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                            : 'border-slate-200 hover:border-slate-300'
+                                            ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                            : 'border-slate-200 dark:border-gray-600 hover:border-slate-300 dark:hover:border-gray-500 dark:text-gray-300'
                                     }`}
                                 >
                                     <Sun size={20} />
@@ -484,8 +488,8 @@ export default function ProfilePage() {
                                     onClick={() => setPreferences(prev => ({ ...prev, theme: 'dark' }))}
                                     className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition ${
                                         preferences.theme === 'dark'
-                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                            : 'border-slate-200 hover:border-slate-300'
+                                            ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                            : 'border-slate-200 dark:border-gray-600 hover:border-slate-300 dark:hover:border-gray-500 dark:text-gray-300'
                                     }`}
                                 >
                                     <Moon size={20} />
@@ -496,15 +500,15 @@ export default function ProfilePage() {
 
                         {/* Langue */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-3">Langue</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-3">Langue</label>
                             <div className="flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setPreferences(prev => ({ ...prev, language: 'fr' }))}
                                     className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition ${
                                         preferences.language === 'fr'
-                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                            : 'border-slate-200 hover:border-slate-300'
+                                            ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                            : 'border-slate-200 dark:border-gray-600 hover:border-slate-300 dark:hover:border-gray-500 dark:text-gray-300'
                                     }`}
                                 >
                                     <Globe size={20} />
@@ -515,8 +519,8 @@ export default function ProfilePage() {
                                     onClick={() => setPreferences(prev => ({ ...prev, language: 'en' }))}
                                     className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition ${
                                         preferences.language === 'en'
-                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                            : 'border-slate-200 hover:border-slate-300'
+                                            ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                            : 'border-slate-200 dark:border-gray-600 hover:border-slate-300 dark:hover:border-gray-500 dark:text-gray-300'
                                     }`}
                                 >
                                     <Globe size={20} />
@@ -543,17 +547,17 @@ export default function ProfilePage() {
                 </form>
 
                 {/* Section Notifications */}
-                <form onSubmit={handlePreferencesSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <form onSubmit={handlePreferencesSubmit} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <Bell className="text-slate-600" size={20} />
-                        <h2 className="text-lg font-semibold text-slate-900">Notifications</h2>
+                        <Bell className="text-slate-600 dark:text-gray-300" size={20} />
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Notifications</h2>
                     </div>
 
                     <div className="space-y-4 mt-4">
-                        <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                        <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-gray-700 transition">
                             <div>
-                                <p className="font-medium text-slate-900">Notifications par email</p>
-                                <p className="text-sm text-slate-500">Recevoir des notifications par email</p>
+                                <p className="font-medium text-slate-900 dark:text-white">Notifications par email</p>
+                                <p className="text-sm text-slate-500 dark:text-gray-400">Recevoir des notifications par email</p>
                             </div>
                             <input
                                 type="checkbox"
@@ -563,10 +567,10 @@ export default function ProfilePage() {
                             />
                         </label>
 
-                        <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                        <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-gray-700 transition">
                             <div>
-                                <p className="font-medium text-slate-900">Rappels de maintenance</p>
-                                <p className="text-sm text-slate-500">Être notifié des maintenances à venir</p>
+                                <p className="font-medium text-slate-900 dark:text-white">Rappels de maintenance</p>
+                                <p className="text-sm text-slate-500 dark:text-gray-400">Être notifié des maintenances à venir</p>
                             </div>
                             <input
                                 type="checkbox"
@@ -576,10 +580,10 @@ export default function ProfilePage() {
                             />
                         </label>
 
-                        <label className="flex items-center justify-between p-4 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                        <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-gray-700 transition">
                             <div>
-                                <p className="font-medium text-slate-900">Alertes de location</p>
-                                <p className="text-sm text-slate-500">Être notifié des locations en cours et à venir</p>
+                                <p className="font-medium text-slate-900 dark:text-white">Alertes de location</p>
+                                <p className="text-sm text-slate-500 dark:text-gray-400">Être notifié des locations en cours et à venir</p>
                             </div>
                             <input
                                 type="checkbox"

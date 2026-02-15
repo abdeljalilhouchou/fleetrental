@@ -111,6 +111,35 @@ class UserController extends Controller
         return response()->json($user->load('company'));
     }
 
+    public function resetPassword(Request $request, User $user)
+    {
+        $currentUser = $request->user();
+
+        // Un company_admin ne peut pas réinitialiser le mot de passe d'un super_admin
+        if (!$currentUser->isSuperAdmin() && $user->isSuperAdmin()) {
+            return response()->json(['message' => 'Accès refusé'], 403);
+        }
+
+        // Un company_admin ne peut réinitialiser que les users de son entreprise
+        if (!$currentUser->isSuperAdmin() && $user->company_id !== $currentUser->company_id) {
+            return response()->json(['message' => 'Accès refusé'], 403);
+        }
+
+        // Un company_admin ne peut réinitialiser que les employés
+        if (!$currentUser->isSuperAdmin() && $user->role !== 'employee') {
+            return response()->json(['message' => 'Accès refusé'], 403);
+        }
+
+        $data = $request->validate([
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        $user->password = Hash::make($data['password']);
+        $user->save();
+
+        return response()->json(['message' => 'Mot de passe réinitialisé avec succès']);
+    }
+
     public function destroy(User $user)
     {
         $currentUser = request()->user();

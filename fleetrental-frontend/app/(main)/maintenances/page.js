@@ -258,12 +258,12 @@ export default function MaintenancesPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 bg-green-50 rounded-2xl flex items-center justify-center">
-            <Wrench size={22} className="text-green-600" />
+          <div className="w-11 h-11 bg-green-50 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
+            <Wrench size={22} className="text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Maintenances</h1>
-            <p className="text-gray-400 text-sm mt-0.5">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Maintenances</h1>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">
               Suivez l&apos;entretien de vos véhicules
             </p>
           </div>
@@ -278,29 +278,29 @@ export default function MaintenancesPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-6 flex items-center gap-2">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-sm rounded-xl px-4 py-3 mb-6 flex items-center gap-2">
           <AlertCircle size={16} /> {error}
         </div>
       )}
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="text-3xl font-bold text-amber-600">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
+          <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
             {inProgressCount}
           </div>
-          <div className="text-xs text-gray-400 mt-1">En cours</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">En cours</div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="text-3xl font-bold text-green-600">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
+          <div className="text-3xl font-bold text-green-600 dark:text-green-400">
             {completedCount}
           </div>
-          <div className="text-xs text-gray-400 mt-1">Terminées</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Terminées</div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="text-3xl font-bold text-blue-600">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
+          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
             {totalCost.toLocaleString()} MAD
           </div>
-          <div className="text-xs text-gray-400 mt-1">Coût total</div>
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Coût total</div>
         </div>
       </div>
 
@@ -308,20 +308,20 @@ export default function MaintenancesPage() {
         <div className="relative flex-1 max-w-md">
           <Search
             size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher une maintenance..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm text-gray-800"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white dark:placeholder-gray-500"
           />
         </div>
         <select
           value={filterVehicle}
           onChange={(e) => setFilterVehicle(e.target.value)}
-          className="px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm text-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none cursor-pointer"
+          className="px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none cursor-pointer"
         >
           <option value="all">Tous les véhicules</option>
           {vehicles.map((v) => (
@@ -333,7 +333,7 @@ export default function MaintenancesPage() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2.5 bg-white rounded-xl border border-gray-200 text-sm text-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none cursor-pointer"
+          className="px-4 py-2.5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none cursor-pointer"
         >
           <option value="all">Tous les statuts</option>
           <option value="in_progress">En cours</option>
@@ -341,36 +341,36 @@ export default function MaintenancesPage() {
         </select>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Wrench size={28} className="text-gray-300" />
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Wrench size={28} className="text-gray-300 dark:text-gray-600" />
             </div>
-            <p className="text-gray-500 font-semibold">
+            <p className="text-gray-500 dark:text-gray-400 font-semibold">
               Aucune maintenance trouvée
             </p>
           </div>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 uppercase">
+              <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">
                   Type
                 </th>
-                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 uppercase">
+                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">
                   Véhicule
                 </th>
-                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 uppercase">
+                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">
                   Date
                 </th>
-                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 uppercase">
+                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">
                   Coût
                 </th>
-                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 uppercase">
+                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">
                   Statut
                 </th>
-                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 uppercase">
+                <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
@@ -382,21 +382,21 @@ export default function MaintenancesPage() {
 
                 return (
                   <Fragment key={m.id}>
-                    <tr className="border-b border-gray-50 hover:bg-gray-50 transition">
+                    <tr className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() =>
                               setExpandedId(isExpanded ? null : m.id)
                             }
-                            className="p-1 hover:bg-gray-200 rounded"
+                            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
                           >
                             <ChevronRight
                               size={14}
-                              className={`text-gray-400 transition ${isExpanded ? "rotate-90" : ""}`}
+                              className={`text-gray-400 dark:text-gray-500 transition ${isExpanded ? "rotate-90" : ""}`}
                             />
                           </button>
-                          <span className="text-sm font-semibold text-gray-800">
+                          <span className="text-sm font-semibold text-gray-800 dark:text-white">
                             {m.type}
                           </span>
                         </div>
@@ -404,29 +404,29 @@ export default function MaintenancesPage() {
                       <td className="px-4 py-4">
                         {vehicle && (
                           <div>
-                            <div className="text-sm font-medium text-gray-800">
+                            <div className="text-sm font-medium text-gray-800 dark:text-white">
                               {vehicle.brand} {vehicle.model}
                             </div>
-                            <div className="text-xs text-gray-400">
+                            <div className="text-xs text-gray-400 dark:text-gray-500">
                               {vehicle.registration_number}
                             </div>
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-4 text-sm text-gray-600">
+                      <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-300">
                         {new Date(m.date).toLocaleDateString("fr-FR")}
                       </td>
-                      <td className="px-4 py-4 text-sm font-semibold text-gray-800">
+                      <td className="px-4 py-4 text-sm font-semibold text-gray-800 dark:text-white">
                         {parseFloat(m.cost).toLocaleString()} MAD
                       </td>
                       <td className="px-4 py-4">
                         {m.status === "in_progress" ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border text-amber-700 bg-amber-50 border-amber-200">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
                             <Clock size={12} />
                             En cours
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border text-green-700 bg-green-50 border-green-200">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800">
                             <CheckCircle2 size={12} />
                             Terminée
                           </span>
@@ -437,7 +437,7 @@ export default function MaintenancesPage() {
                           {m.status === "in_progress" && (
                             <button
                               onClick={() => handleComplete(m.id)}
-                              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                              className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition"
                               title="Terminer"
                             >
                               <CheckCircle2 size={16} />
@@ -446,7 +446,7 @@ export default function MaintenancesPage() {
                           {isAdmin && (
                             <button
                               onClick={() => handleEdit(m)}
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                              className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition"
                               title="Modifier"
                             >
                               <Edit2 size={16} />
@@ -455,7 +455,7 @@ export default function MaintenancesPage() {
                           {isAdmin && (
                             <button
                               onClick={() => handleDelete(m.id)}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                              className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition"
                               title="Supprimer"
                             >
                               <Trash2 size={16} />
@@ -467,21 +467,21 @@ export default function MaintenancesPage() {
 
                     {isExpanded && (
                       <tr>
-                        <td colSpan="6" className="bg-gray-50 px-4 py-4">
+                        <td colSpan="6" className="bg-gray-50 dark:bg-gray-800/50 px-4 py-4">
                           <div className="max-w-4xl">
                             {m.description && (
                               <div className="mb-4">
-                                <div className="text-xs font-bold text-gray-400 uppercase mb-1">
+                                <div className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">
                                   Description
                                 </div>
-                                <div className="text-sm text-gray-700">
+                                <div className="text-sm text-gray-700 dark:text-gray-300">
                                   {m.description}
                                 </div>
                               </div>
                             )}
 
                             <div className="mb-4">
-                              <div className="text-xs font-bold text-gray-400 uppercase mb-2">
+                              <div className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">
                                 Fichiers joints
                               </div>
                               {m.files && m.files.length > 0 ? (
@@ -489,14 +489,14 @@ export default function MaintenancesPage() {
                                   {m.files.map((file) => (
                                     <div
                                       key={file.id}
-                                      className="flex items-center gap-2 bg-white rounded-lg border border-gray-200 p-2"
+                                      className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2"
                                     >
                                       <FileIcon mimeType={file.mime_type} />
                                       <div className="flex-1 min-w-0">
-                                        <div className="text-xs font-medium text-gray-700 truncate">
+                                        <div className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
                                           {file.file_name}
                                         </div>
-                                        <div className="text-xs text-gray-400">
+                                        <div className="text-xs text-gray-400 dark:text-gray-500">
                                           {formatSize(file.file_size)}
                                         </div>
                                       </div>
@@ -504,7 +504,7 @@ export default function MaintenancesPage() {
                                         href={`${STORAGE_URL}/storage/${file.file_path}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                        className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded"
                                       >
                                         <Eye size={14} />
                                       </a>
@@ -513,7 +513,7 @@ export default function MaintenancesPage() {
                                           onClick={() =>
                                             handleDeleteFile(m.id, file.id)
                                           }
-                                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                          className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
                                         >
                                           <X size={14} />
                                         </button>
@@ -522,7 +522,7 @@ export default function MaintenancesPage() {
                                   ))}
                                 </div>
                               ) : (
-                                <div className="text-xs text-gray-400 mb-3">
+                                <div className="text-xs text-gray-400 dark:text-gray-500 mb-3">
                                   Aucun fichier joint
                                 </div>
                               )}
@@ -539,8 +539,8 @@ export default function MaintenancesPage() {
                                 }}
                                 className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition ${
                                   dragOver
-                                    ? "border-blue-500 bg-blue-50"
-                                    : "border-gray-300 bg-white hover:border-blue-400"
+                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                                    : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 hover:border-blue-400 dark:hover:border-blue-500"
                                 }`}
                                 onClick={() => {
                                   const input = document.createElement("input");
@@ -553,9 +553,9 @@ export default function MaintenancesPage() {
                               >
                                 <Upload
                                   size={20}
-                                  className="mx-auto mb-2 text-gray-400"
+                                  className="mx-auto mb-2 text-gray-400 dark:text-gray-500"
                                 />
-                                <div className="text-xs text-gray-600">
+                                <div className="text-xs text-gray-600 dark:text-gray-400">
                                   {uploading
                                     ? "Upload en cours..."
                                     : "Glissez des fichiers ou cliquez pour ajouter"}
@@ -576,23 +576,23 @@ export default function MaintenancesPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="font-bold text-gray-800">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+              <h2 className="font-bold text-gray-800 dark:text-white">
                 {editingId ? "Modifier" : "Nouvelle"} maintenance
               </h2>
             </div>
 
             <div className="p-6 max-h-[60vh] overflow-y-auto">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg px-3 py-2 mb-4 flex items-center gap-2">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs rounded-lg px-3 py-2 mb-4 flex items-center gap-2">
                   <AlertCircle size={14} /> {error}
                 </div>
               )}
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
+                  <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">
                     Véhicule
                   </label>
                   <select
@@ -600,7 +600,7 @@ export default function MaintenancesPage() {
                     onChange={(e) =>
                       setForm({ ...form, vehicle_id: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm cursor-pointer"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white cursor-pointer"
                   >
                     <option value="">Sélectionner un véhicule</option>
                     {vehicles
@@ -614,13 +614,13 @@ export default function MaintenancesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
+                  <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">
                     Type
                   </label>
                   <select
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm cursor-pointer"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white cursor-pointer"
                   >
                     <option value="">Sélectionner un type</option>
                     {MAINTENANCE_TYPES.map((t) => (
@@ -632,7 +632,7 @@ export default function MaintenancesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
+                  <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">
                     Description
                   </label>
                   <textarea
@@ -641,13 +641,13 @@ export default function MaintenancesPage() {
                       setForm({ ...form, description: e.target.value })
                     }
                     rows="3"
-                    className="w-full px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm resize-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white resize-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
+                    <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">
                       Coût (MAD)
                     </label>
                     <input
@@ -656,11 +656,11 @@ export default function MaintenancesPage() {
                       onChange={(e) =>
                         setForm({ ...form, cost: e.target.value })
                       }
-                      className="w-full px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
+                    <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">
                       Date
                     </label>
                     <input
@@ -669,13 +669,13 @@ export default function MaintenancesPage() {
                       onChange={(e) =>
                         setForm({ ...form, date: e.target.value })
                       }
-                      className="w-full px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">
+                  <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">
                     Kilométrage
                   </label>
                   <input
@@ -687,13 +687,13 @@ export default function MaintenancesPage() {
                         mileage_at_maintenance: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-sm"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 outline-none text-sm text-gray-800 dark:text-white"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-100">
+            <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={() => {
                   setShowModal(false);
@@ -701,7 +701,7 @@ export default function MaintenancesPage() {
                   setEditingId(null);
                   setError("");
                 }}
-                className="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition"
+                className="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition"
               >
                 Annuler
               </button>

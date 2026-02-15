@@ -84,6 +84,22 @@ class VehicleController extends Controller
         return response()->json(['message' => 'Véhicule supprimé']);
     }
 
+    public function uploadPhoto(Request $request, Vehicle $vehicle)
+    {
+        if ($vehicle->company_id !== $request->user()->company_id) {
+            return response()->json(['message' => 'Accès refusé'], 403);
+        }
+
+        $request->validate([
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
+
+        $path = $request->file('photo')->store('vehicle_photos', 'public');
+        $vehicle->update(['photo' => $path]);
+
+        return response()->json($vehicle);
+    }
+
     /**
      * NOUVELLE MÉTHODE : Change uniquement le statut (accessible aux employés)
      */

@@ -22,10 +22,10 @@ const TYPE_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef
 const AreaTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-3">
-                <p className="text-xs font-bold text-gray-500 mb-1">{label}</p>
-                <p className="text-sm font-bold text-blue-600">
-                    {payload[0].value.toLocaleString()} <span className="text-gray-400 font-normal">€</span>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3">
+                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+                <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                    {payload[0].value.toLocaleString()} <span className="text-gray-400 dark:text-gray-500 font-normal">€</span>
                 </p>
             </div>
         );
@@ -37,13 +37,13 @@ const AreaTooltip = ({ active, payload, label }) => {
 const BarTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-3">
-                <p className="text-xs font-bold text-gray-500 mb-1">{label}</p>
-                <p className="text-sm font-semibold text-purple-600">
-                    {payload[0].value} <span className="text-gray-400 font-normal">maintenance(s)</span>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3">
+                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+                <p className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                    {payload[0].value} <span className="text-gray-400 dark:text-gray-500 font-normal">maintenance(s)</span>
                 </p>
-                <p className="text-sm font-semibold text-green-600">
-                    {payload[1].value.toLocaleString()} <span className="text-gray-400 font-normal">€</span>
+                <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    {payload[1].value.toLocaleString()} <span className="text-gray-400 dark:text-gray-500 font-normal">€</span>
                 </p>
             </div>
         );
@@ -92,7 +92,7 @@ export default function StatsPage() {
             value: stats.total_vehicles,
             icon: Car,
             iconColor: 'text-blue-600',
-            iconBg: 'bg-blue-50',
+            iconBg: 'bg-blue-50 dark:bg-blue-900/30',
             sub: `${stats.vehicles_by_status.available || 0} disponible(s)`,
             subColor: 'text-green-600',
         },
@@ -101,7 +101,7 @@ export default function StatsPage() {
             value: stats.total_maintenances,
             icon: Wrench,
             iconColor: 'text-purple-600',
-            iconBg: 'bg-purple-50',
+            iconBg: 'bg-purple-50 dark:bg-purple-900/30',
             sub: `${stats.maintenance_by_type.length} type(s)`,
             subColor: 'text-purple-500',
         },
@@ -110,7 +110,7 @@ export default function StatsPage() {
             value: `${stats.total_cost.toLocaleString()} €`,
             icon: DollarSign,
             iconColor: 'text-green-600',
-            iconBg: 'bg-green-50',
+            iconBg: 'bg-green-50 dark:bg-green-900/30',
             sub: stats.total_maintenances > 0
                 ? `Moy. ${(stats.total_cost / stats.total_maintenances).toLocaleString(undefined, { maximumFractionDigits: 0 })} € / maintenance`
                 : 'Aucune maintenance',
@@ -121,7 +121,7 @@ export default function StatsPage() {
             value: new Set((stats.maintenance_by_type || []).map(() => null)).size || stats.total_vehicles,
             icon: TrendingUp,
             iconColor: 'text-orange-600',
-            iconBg: 'bg-orange-50',
+            iconBg: 'bg-orange-50 dark:bg-orange-900/30',
             sub: stats.total_vehicles > 0
                 ? `${((stats.vehicles_by_status.available || 0) / stats.total_vehicles * 100).toFixed(0)}% disponibles`
                 : '—',
@@ -134,8 +134,8 @@ export default function StatsPage() {
         <div>
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-800">Statistiques</h1>
-                <p className="text-gray-400 text-sm mt-1">Analyse et aperçu de votre flotte</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Statistiques</h1>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Analyse et aperçu de votre flotte</p>
             </div>
 
             {/* Top Cards */}
@@ -143,14 +143,14 @@ export default function StatsPage() {
                 {topCards.map((card, i) => {
                     const Icon = card.icon;
                     return (
-                        <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition">
+                        <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 hover:shadow-md transition">
                             <div className="flex items-center justify-between mb-4">
                                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.iconBg}`}>
                                     <Icon size={20} className={card.iconColor} />
                                 </div>
                             </div>
-                            <div className="text-2xl font-bold text-gray-800">{card.value}</div>
-                            <div className="text-xs text-gray-400 mt-1">{card.title}</div>
+                            <div className="text-2xl font-bold text-gray-800 dark:text-white">{card.value}</div>
+                            <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">{card.title}</div>
                             <div className={`text-xs font-semibold mt-1.5 ${card.subColor}`}>{card.sub}</div>
                         </div>
                     );
@@ -160,10 +160,10 @@ export default function StatsPage() {
             {/* Charts Row 1 : Area + Pie */}
             <div className="grid grid-cols-3 gap-5 mb-5">
                 {/* Monthly Costs - Area Chart */}
-                <div className="col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
                     <div className="mb-6">
-                        <h2 className="font-bold text-gray-800">Coûts mensuels</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">Évolution des dépenses de maintenance sur 6 mois</p>
+                        <h2 className="font-bold text-gray-800 dark:text-white">Coûts mensuels</h2>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Évolution des dépenses de maintenance sur 6 mois</p>
                     </div>
                     <ResponsiveContainer width="100%" height={240}>
                         <AreaChart data={stats.monthly_costs}>
@@ -173,7 +173,7 @@ export default function StatsPage() {
                                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} vertical={false} />
                             <XAxis
                                 dataKey="month"
                                 axisLine={false}
@@ -201,10 +201,10 @@ export default function StatsPage() {
                 </div>
 
                 {/* Vehicle Status - Pie Chart */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
                     <div className="mb-4">
-                        <h2 className="font-bold text-gray-800">Statut des véhicules</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">Répartition actuelle</p>
+                        <h2 className="font-bold text-gray-800 dark:text-white">Statut des véhicules</h2>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Répartition actuelle</p>
                     </div>
                     {pieData.length > 0 ? (
                         <>
@@ -232,31 +232,31 @@ export default function StatsPage() {
                                     <div key={i} className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                            <span className="text-xs text-gray-600">{item.name}</span>
+                                            <span className="text-xs text-gray-600 dark:text-gray-400">{item.name}</span>
                                         </div>
-                                        <span className="text-xs font-bold text-gray-800">{item.value}</span>
+                                        <span className="text-xs font-bold text-gray-800 dark:text-white">{item.value}</span>
                                     </div>
                                 ))}
                             </div>
                         </>
                     ) : (
                         <div className="flex items-center justify-center h-40">
-                            <p className="text-gray-300 text-sm">Aucun véhicule</p>
+                            <p className="text-gray-300 dark:text-gray-500 text-sm">Aucun véhicule</p>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Charts Row 2 : Bar Chart (maintenance by type) */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
                 <div className="mb-6">
-                    <h2 className="font-bold text-gray-800">Maintenances par type</h2>
-                    <p className="text-xs text-gray-400 mt-0.5">Nombre et coût selon le type de maintenance</p>
+                    <h2 className="font-bold text-gray-800 dark:text-white">Maintenances par type</h2>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Nombre et coût selon le type de maintenance</p>
                 </div>
                 {barData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={220}>
                         <BarChart data={barData} barGap={4}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} vertical={false} />
                             <XAxis
                                 dataKey="name"
                                 axisLine={false}
@@ -289,18 +289,18 @@ export default function StatsPage() {
                     </ResponsiveContainer>
                 ) : (
                     <div className="flex items-center justify-center h-48">
-                        <p className="text-gray-300 text-sm">Aucune maintenance enregistrée</p>
+                        <p className="text-gray-300 dark:text-gray-500 text-sm">Aucune maintenance enregistrée</p>
                     </div>
                 )}
                 {barData.length > 0 && (
                     <div className="flex items-center gap-6 mt-4 justify-center">
                         <div className="flex items-center gap-2">
                             <div className="w-4 h-3 rounded-sm bg-blue-500"></div>
-                            <span className="text-xs text-gray-500">Nombre</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Nombre</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-4 h-3 rounded-sm bg-green-500"></div>
-                            <span className="text-xs text-gray-500">Coût (€)</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Coût (€)</span>
                         </div>
                     </div>
                 )}

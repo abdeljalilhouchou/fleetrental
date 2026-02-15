@@ -16,7 +16,7 @@ class RentalController extends Controller
             ? null
             : $request->user()->company_id;
 
-        $query = Rental::with(['vehicle', 'company']);
+        $query = Rental::with(['vehicle', 'company', 'files']);
 
         if ($companyId) {
             $query->where('company_id', $companyId);

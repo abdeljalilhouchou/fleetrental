@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\SuperAdminStatsController;
 use App\Http\Controllers\RentalController;
+use App\Http\Controllers\RentalFileController;
 use App\Http\Controllers\ProfileController;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -67,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/vehicles', [VehicleController::class, 'store']);
         Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update']);
         Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy']);
+        Route::post('/vehicles/{vehicle}/photo', [VehicleController::class, 'uploadPhoto']);
 
         // Maintenances - modification et suppression uniquement
         Route::put('/maintenances/{maintenance}', [MaintenanceController::class, 'update']);
@@ -86,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
+        Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword']);
     });
 
     // ═══════════════════════════════════════════════════════════
@@ -110,6 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/rentals', [RentalController::class, 'store']);
         Route::post('/rentals/{rental}/complete', [RentalController::class, 'complete']);
         Route::post('/rentals/{rental}/cancel', [RentalController::class, 'cancel']);
+        Route::post('/rentals/{rental}/files', [RentalFileController::class, 'store']);
         Route::get('/vehicles/{vehicle}/rentals', [RentalController::class, 'vehicleHistory']);
     });
 
@@ -117,5 +121,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['auth:sanctum', 'company.admin'])->group(function () {
         Route::put('/rentals/{rental}', [RentalController::class, 'update']);
         Route::delete('/rentals/{rental}', [RentalController::class, 'destroy']);
+        Route::delete('/rentals/{rental}/files/{file}', [RentalFileController::class, 'destroy']);
     });
 });
