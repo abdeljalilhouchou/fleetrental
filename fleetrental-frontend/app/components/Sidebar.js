@@ -1,9 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { logout } from '../../lib/api';
 import { useData } from '../context/DataContext';
-import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings } from 'lucide-react';
+import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X } from 'lucide-react';
 
 // Navigation par rôle
 const NAV_BY_ROLE = {
@@ -39,6 +40,7 @@ export default function Sidebar() {
     const router   = useRouter();
     const pathname = usePathname();
     const { user, reminders } = useData();
+    const [isOpen, setIsOpen] = useState(false);
 
     const role = user?.role || 'employee';
     const navItems = NAV_BY_ROLE[role] || NAV_BY_ROLE.employee;
@@ -47,8 +49,22 @@ export default function Sidebar() {
     // Calculer les rappels en retard (utilise computed_status du backend)
     const overdueRemindersCount = reminders?.filter((r) => r.computed_status === 'overdue').length || 0;
 
-    return (
-        <aside className="w-64 bg-slate-900 flex flex-col h-screen sticky top-0 shrink-0">
+    // Fermer la sidebar quand on navigue
+    useEffect(() => {
+        setIsOpen(false);
+    }, [pathname]);
+
+    // Fermer sidebar sur resize desktop
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) setIsOpen(false);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const sidebarContent = (
+        <>
             {/* Logo */}
             <div className="p-6 border-b border-slate-800">
                 <div className="flex items-center gap-3">
@@ -56,6 +72,10 @@ export default function Sidebar() {
                         <Car size={20} className="text-white" />
                     </div>
                     <span className="text-white font-bold text-lg">FleetRental</span>
+                    {/* Close button mobile */}
+                    <button onClick={() => setIsOpen(false)} className="lg:hidden ml-auto text-slate-400 hover:text-white">
+                        <X size={20} />
+                    </button>
                 </div>
                 {role !== 'super_admin' && user?.company && (
                     <div className="mt-4 flex items-center gap-2 bg-slate-800 rounded-lg px-3 py-2">
@@ -142,6 +162,35 @@ export default function Sidebar() {
                     Déconnexion
                 </button>
             </div>
-        </aside>
+        </>
+    );
+
+    return (
+        <>
+            {/* Hamburger button - mobile only */}
+            <button
+                onClick={() => setIsOpen(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 bg-slate-900 text-white p-2 rounded-xl shadow-lg"
+            >
+                <Menu size={22} />
+            </button>
+
+            {/* Desktop sidebar */}
+            <aside className="hidden lg:flex w-64 bg-slate-900 flex-col h-screen sticky top-0 shrink-0">
+                {sidebarContent}
+            </aside>
+
+            {/* Mobile sidebar overlay */}
+            {isOpen && (
+                <div className="lg:hidden fixed inset-0 z-50">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-black/60" onClick={() => setIsOpen(false)} />
+                    {/* Sidebar */}
+                    <aside className="relative w-72 max-w-[80vw] bg-slate-900 flex flex-col h-full animate-slide-in">
+                        {sidebarContent}
+                    </aside>
+                </div>
+            )}
+        </>
     );
 }

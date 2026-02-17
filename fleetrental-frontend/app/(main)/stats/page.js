@@ -139,7 +139,7 @@ export default function StatsPage() {
             </div>
 
             {/* Top Cards */}
-            <div className="grid grid-cols-4 gap-5 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 mb-8">
                 {topCards.map((card, i) => {
                     const Icon = card.icon;
                     return (
@@ -158,9 +158,9 @@ export default function StatsPage() {
             </div>
 
             {/* Charts Row 1 : Area + Pie */}
-            <div className="grid grid-cols-3 gap-5 mb-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mb-5">
                 {/* Monthly Costs - Area Chart */}
-                <div className="col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
                     <div className="mb-6">
                         <h2 className="font-bold text-gray-800 dark:text-white">Coûts mensuels</h2>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Évolution des dépenses de maintenance sur 6 mois</p>

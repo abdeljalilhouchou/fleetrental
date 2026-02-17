@@ -41,6 +41,7 @@ export default function UsersPage() {
     const [saving, setSaving]               = useState(false);
     const [search, setSearch]               = useState('');
 
+    const [filterRole, setFilterRole]             = useState('all');
     const [showResetModal, setShowResetModal]   = useState(false);
     const [resetUserId, setResetUserId]         = useState(null);
     const [resetForm, setResetForm]             = useState({ password: '', password_confirmation: '' });
@@ -146,9 +147,11 @@ export default function UsersPage() {
     };
 
     // ── FILTRES ───────────────────────────────────
-    const filtered = users.filter(u =>
-        `${u.name} ${u.email}`.toLowerCase().includes(search.toLowerCase())
-    );
+    const filtered = users.filter(u => {
+        const matchSearch = `${u.name} ${u.email}`.toLowerCase().includes(search.toLowerCase());
+        const matchRole = filterRole === 'all' || u.role === filterRole;
+        return matchSearch && matchRole;
+    });
 
     const adminCount    = users.filter(u => u.role === 'company_admin').length;
     const employeeCount = users.filter(u => u.role === 'employee').length;
@@ -157,18 +160,18 @@ export default function UsersPage() {
         <RoleProtector allowedRoles={['super_admin', 'company_admin']}>
         <div>
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-3">
                     <div className="w-11 h-11 bg-green-50 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
                         <Users size={22} className="text-green-600" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Utilisateurs</h1>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Utilisateurs</h1>
                         <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Gérez votre équipe</p>
                     </div>
                 </div>
                 <button onClick={handleCreate}
-                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-green-600/20 hover:shadow-lg transition flex items-center gap-2">
+                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-green-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center">
                     <Plus size={18} />
                     Nouvel utilisateur
                 </button>
@@ -182,41 +185,30 @@ export default function UsersPage() {
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-center">
-                            <Users size={20} className="text-gray-600 dark:text-gray-300" />
-                        </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
+                {[
+                    { label: 'Total utilisateurs', value: users.length, filter: 'all', valueColor: 'text-gray-800 dark:text-white' },
+                    { label: 'Administrateurs', value: adminCount, filter: 'company_admin', valueColor: 'text-green-600 dark:text-green-400' },
+                    { label: 'Employés', value: employeeCount, filter: 'employee', valueColor: 'text-blue-600 dark:text-blue-400' },
+                ].map((card) => (
+                    <div
+                        key={card.filter}
+                        onClick={() => setFilterRole(filterRole === card.filter ? 'all' : card.filter)}
+                        className={`rounded-2xl border shadow-sm p-5 cursor-pointer hover:shadow-md transition ${
+                            filterRole === card.filter
+                                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 ring-2 ring-blue-400/50'
+                                : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700'
+                        }`}
+                    >
+                        <div className={`text-3xl font-bold ${card.valueColor}`}>{card.value}</div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">{card.label}</div>
                     </div>
-                    <div className="text-3xl font-bold text-gray-800 dark:text-white">{users.length}</div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Total utilisateurs</div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
-                            <Shield size={20} className="text-green-600" />
-                        </div>
-                    </div>
-                    <div className="text-3xl font-bold text-gray-800 dark:text-white">{adminCount}</div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Administrateurs</div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                            <User size={20} className="text-blue-600" />
-                        </div>
-                    </div>
-                    <div className="text-3xl font-bold text-gray-800 dark:text-white">{employeeCount}</div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Employés</div>
-                </div>
+                ))}
             </div>
 
             {/* Search */}
-            <div className="flex items-center gap-3 mb-5">
-                <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+                <div className="relative flex-1 sm:max-w-md">
                     <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500" />
                     <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                         placeholder="Rechercher un utilisateur..."
@@ -237,7 +229,7 @@ export default function UsersPage() {
                         </p>
                     </div>
                 ) : (
-                    <table className="w-full">
+                    <div className="overflow-x-auto"><table className="w-full min-w-[600px]">
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                                 <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Utilisateur</th>
@@ -304,7 +296,7 @@ export default function UsersPage() {
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></div>
                 )}
             </div>
 

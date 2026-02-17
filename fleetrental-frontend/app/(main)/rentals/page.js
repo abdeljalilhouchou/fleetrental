@@ -258,18 +258,18 @@ export default function RentalsPage() {
     return (
         <RoleProtector allowedRoles={['company_admin', 'employee']}>
         <div>
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-3">
                     <div className="w-11 h-11 bg-purple-50 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center">
                         <Car size={22} className="text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Locations</h1>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Locations</h1>
                         <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Gérez vos locations de véhicules</p>
                     </div>
                 </div>
                 <button onClick={handleCreate}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-purple-600/20 hover:shadow-lg transition flex items-center gap-2">
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-purple-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center">
                     <Plus size={18} />
                     Nouvelle location
                 </button>
@@ -281,27 +281,30 @@ export default function RentalsPage() {
                 </div>
             )}
 
-            <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-                    <div className="text-3xl font-bold text-gray-800 dark:text-white">{rentalStats.total}</div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Total locations</div>
-                </div>
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{rentalStats.ongoing}</div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">En cours</div>
-                </div>
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">{rentalStats.completed}</div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Terminées</div>
-                </div>
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{rentalStats.revenue.toLocaleString()} MAD</div>
-                    <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Revenu total</div>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+                {[
+                    { label: 'Total locations', value: rentalStats.total, filter: 'all', valueColor: 'text-gray-800 dark:text-white' },
+                    { label: 'En cours', value: rentalStats.ongoing, filter: 'ongoing', valueColor: 'text-blue-600 dark:text-blue-400' },
+                    { label: 'Terminées', value: rentalStats.completed, filter: 'completed', valueColor: 'text-green-600 dark:text-green-400' },
+                    { label: 'Revenu total', value: `${rentalStats.revenue.toLocaleString()} MAD`, filter: null, valueColor: 'text-purple-600 dark:text-purple-400' },
+                ].map((card, i) => (
+                    <div
+                        key={i}
+                        onClick={() => card.filter !== null && setFilterStatus(filterStatus === card.filter ? 'all' : card.filter)}
+                        className={`rounded-2xl border shadow-sm p-5 transition ${card.filter !== null ? 'cursor-pointer hover:shadow-md' : ''} ${
+                            card.filter !== null && filterStatus === card.filter
+                                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 ring-2 ring-blue-400/50'
+                                : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700'
+                        }`}
+                    >
+                        <div className={`text-3xl font-bold ${card.valueColor}`}>{card.value}</div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">{card.label}</div>
+                    </div>
+                ))}
             </div>
 
-            <div className="flex items-center gap-3 mb-5">
-                <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+                <div className="relative flex-1 sm:max-w-md">
                     <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500" />
                     <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                         placeholder="Rechercher une location..."
@@ -325,15 +328,15 @@ export default function RentalsPage() {
                         <p className="text-gray-500 dark:text-gray-400 font-semibold">Aucune location trouvée</p>
                     </div>
                 ) : (
-                    <table className="w-full">
+                    <div className="overflow-x-auto"><table className="w-full min-w-[700px]">
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Client</th>
-                                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Véhicule</th>
-                                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Dates</th>
-                                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Prix</th>
-                                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Statut</th>
-                                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Actions</th>
+                                <th className="text-left px-4 md:px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Client</th>
+                                <th className="text-left px-4 md:px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Véhicule</th>
+                                <th className="text-left px-4 md:px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Dates</th>
+                                <th className="text-left px-4 md:px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Prix</th>
+                                <th className="text-left px-4 md:px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Statut</th>
+                                <th className="text-left px-4 md:px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -419,7 +422,7 @@ export default function RentalsPage() {
                                             <td colSpan="6" className="bg-gray-50 dark:bg-gray-800/50 px-4 py-4">
                                                 <div className="max-w-4xl">
                                                     {/* Détails de la location */}
-                                                    <div className="grid grid-cols-3 gap-4 mb-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                                                         <div>
                                                             <div className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Email</div>
                                                             <div className="text-sm text-gray-700 dark:text-gray-300">{r.customer_email || '—'}</div>
@@ -466,7 +469,7 @@ export default function RentalsPage() {
                                                     <div>
                                                         <div className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Fichiers joints</div>
                                                         {r.files && r.files.length > 0 ? (
-                                                            <div className="grid grid-cols-2 gap-2 mb-3">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                                                                 {r.files.map((file) => (
                                                                     <div key={file.id} className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-2">
                                                                         <FileIcon mimeType={file.file_type} />
@@ -519,7 +522,7 @@ export default function RentalsPage() {
                                 );
                             })}
                         </tbody>
-                    </table>
+                    </table></div>
                 )}
             </div>
 
@@ -559,7 +562,7 @@ export default function RentalsPage() {
                                 {/* Informations Client */}
                                 <div className="border-t dark:border-gray-700 pt-4">
                                     <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Informations client</h3>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Nom complet</label>
                                             <input type="text" value={form.customer_name} onChange={(e) => setForm({...form, customer_name: e.target.value})}
@@ -592,7 +595,7 @@ export default function RentalsPage() {
                                 {/* Dates et Kilométrage */}
                                 <div className="border-t dark:border-gray-700 pt-4">
                                     <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Période de location</h3>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Date début</label>
                                             <input type="date" value={form.start_date} onChange={(e) => setForm({...form, start_date: e.target.value})}
@@ -614,7 +617,7 @@ export default function RentalsPage() {
                                 {/* Prix */}
                                 <div className="border-t dark:border-gray-700 pt-4">
                                     <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Tarification</h3>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Tarif/jour (MAD)</label>
                                             <input type="number" value={form.daily_rate} onChange={(e) => setForm({...form, daily_rate: e.target.value})}

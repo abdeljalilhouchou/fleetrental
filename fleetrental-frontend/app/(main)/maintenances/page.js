@@ -256,13 +256,13 @@ export default function MaintenancesPage() {
   return (
     <RoleProtector allowedRoles={['company_admin', 'employee']}>
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 bg-green-50 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
             <Wrench size={22} className="text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Maintenances</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Maintenances</h1>
             <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">
               Suivez l&apos;entretien de vos véhicules
             </p>
@@ -270,7 +270,7 @@ export default function MaintenancesPage() {
         </div>
         <button
           onClick={handleCreate}
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-green-600/20 hover:shadow-lg transition flex items-center gap-2"
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-green-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center"
         >
           <Plus size={18} />
           Nouvelle maintenance
@@ -283,29 +283,29 @@ export default function MaintenancesPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-          <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-            {inProgressCount}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
+        {[
+          { label: 'En cours', value: inProgressCount, filter: 'in_progress', valueColor: 'text-amber-600 dark:text-amber-400' },
+          { label: 'Terminées', value: completedCount, filter: 'completed', valueColor: 'text-green-600 dark:text-green-400' },
+          { label: 'Coût total', value: `${totalCost.toLocaleString()} MAD`, filter: null, valueColor: 'text-blue-600 dark:text-blue-400' },
+        ].map((card, i) => (
+          <div
+            key={i}
+            onClick={() => card.filter !== null && setFilterStatus(filterStatus === card.filter ? 'all' : card.filter)}
+            className={`rounded-2xl border shadow-sm p-5 transition ${card.filter !== null ? 'cursor-pointer hover:shadow-md' : ''} ${
+              card.filter !== null && filterStatus === card.filter
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 ring-2 ring-blue-400/50'
+                : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700'
+            }`}
+          >
+            <div className={`text-3xl font-bold ${card.valueColor}`}>{card.value}</div>
+            <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">{card.label}</div>
           </div>
-          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">En cours</div>
-        </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-          <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-            {completedCount}
-          </div>
-          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Terminées</div>
-        </div>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-            {totalCost.toLocaleString()} MAD
-          </div>
-          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Coût total</div>
-        </div>
+        ))}
       </div>
 
-      <div className="flex items-center gap-3 mb-5">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+        <div className="relative flex-1 sm:max-w-md">
           <Search
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500"
@@ -352,7 +352,7 @@ export default function MaintenancesPage() {
             </p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                 <th className="text-left px-4 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">
@@ -570,7 +570,7 @@ export default function MaintenancesPage() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 
@@ -645,7 +645,7 @@ export default function MaintenancesPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">
                       Coût (MAD)

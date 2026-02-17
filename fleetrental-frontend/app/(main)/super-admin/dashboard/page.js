@@ -97,7 +97,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Main Stats Cards */}
-            <div className="grid grid-cols-4 gap-5 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 mb-6">
                 {mainStats.map((stat, idx) => {
                     const Icon = stat.icon;
                     return (
@@ -119,11 +119,11 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Second Row */}
-            <div className="grid grid-cols-3 gap-5 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
                 {/* Vehicle Status */}
-                <div className="col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
                     <h2 className="font-bold text-gray-800 dark:text-gray-100 mb-5">État des véhicules</h2>
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {vehicleStats.map((stat, idx) => {
                             const Icon = stat.icon;
                             return (

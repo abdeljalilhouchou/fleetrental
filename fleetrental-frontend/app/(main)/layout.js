@@ -19,7 +19,7 @@ function MainContent({ children }) {
 
     if (loading) {
         return (
-            <main className="flex-1 p-8 overflow-auto flex items-center justify-center dark:bg-gray-950">
+            <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto flex items-center justify-center dark:bg-gray-950">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                     <span className="text-gray-400 text-sm">Chargement...</span>
@@ -29,7 +29,7 @@ function MainContent({ children }) {
     }
 
     return (
-        <main className="flex-1 p-8 overflow-auto dark:bg-gray-950">
+        <main className="flex-1 p-4 pt-16 md:p-6 lg:p-8 lg:pt-8 overflow-auto dark:bg-gray-950">
             {children}
         </main>
     );

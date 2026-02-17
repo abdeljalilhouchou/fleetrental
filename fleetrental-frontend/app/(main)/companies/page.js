@@ -104,25 +104,25 @@ export default function CompaniesPage() {
         <RoleProtector allowedRoles={['super_admin']}>
         <div>
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-3">
                     <div className="w-11 h-11 bg-purple-50 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center">
                         <Shield size={22} className="text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Entreprises</h1>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">Entreprises</h1>
                         <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Panneau Super Admin</p>
                     </div>
                 </div>
                 <button onClick={handleCreate}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-purple-600/20 hover:shadow-lg transition flex items-center gap-2">
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-purple-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center">
                     <Plus size={18} />
                     Nouvelle entreprise
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
                 <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
@@ -155,8 +155,8 @@ export default function CompaniesPage() {
             </div>
 
             {/* Search */}
-            <div className="flex items-center gap-3 mb-5">
-                <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+                <div className="relative flex-1 sm:max-w-md">
                     <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600" />
                     <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                         placeholder="Rechercher une entreprise..."
@@ -177,7 +177,7 @@ export default function CompaniesPage() {
                         </p>
                     </div>
                 ) : (
-                    <table className="w-full">
+                    <div className="overflow-x-auto"><table className="w-full min-w-[600px]">
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
                                 <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Entreprise</th>
@@ -260,7 +260,7 @@ export default function CompaniesPage() {
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></div>
                 )}
             </div>
 
@@ -317,7 +317,7 @@ export default function CompaniesPage() {
                             </div>
 
                             {/* Email + Phone */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
                                     <div className="relative">

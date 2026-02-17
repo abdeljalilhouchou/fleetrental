@@ -288,9 +288,9 @@ export default function RemindersPage() {
     <RoleProtector allowedRoles={['company_admin', 'employee']}>
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             Rappels de maintenance
           </h1>
           <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
@@ -300,7 +300,7 @@ export default function RemindersPage() {
         {isAdmin && (
           <button
             onClick={handleCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/20 hover:shadow-lg transition flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center"
           >
             <Plus size={18} />
             Nouveau rappel
@@ -309,71 +309,31 @@ export default function RemindersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-              <Bell size={20} className="text-blue-600 dark:text-blue-400" />
-            </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+        {[
+          { label: 'Total rappels', value: reminders.length, filter: 'all', valueColor: 'text-gray-800 dark:text-white' },
+          { label: 'En retard', value: overdueCount, filter: 'overdue', valueColor: 'text-red-600 dark:text-red-400' },
+          { label: 'À venir', value: upcomingCount, filter: 'upcoming', valueColor: 'text-amber-600 dark:text-amber-400' },
+          { label: 'OK', value: okCount, filter: 'ok', valueColor: 'text-green-600 dark:text-green-400' },
+        ].map((card) => (
+          <div
+            key={card.filter}
+            onClick={() => setFilterStatus(filterStatus === card.filter ? 'all' : card.filter)}
+            className={`rounded-2xl border shadow-sm p-5 cursor-pointer hover:shadow-md transition ${
+              filterStatus === card.filter
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 ring-2 ring-blue-400/50'
+                : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700'
+            }`}
+          >
+            <div className={`text-3xl font-bold ${card.valueColor}`}>{card.value}</div>
+            <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">{card.label}</div>
           </div>
-          <div className="text-3xl font-bold text-gray-800 dark:text-white">
-            {reminders.length}
-          </div>
-          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">Total rappels</div>
-        </div>
-
-        <button
-          onClick={() =>
-            setFilterStatus(filterStatus === "overdue" ? "all" : "overdue")
-          }
-          className={`rounded-2xl border shadow-sm p-5 text-left transition
-                        ${filterStatus === "overdue" ? "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800" : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-800"}`}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-red-50 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
-              <AlertTriangle size={20} className="text-red-600 dark:text-red-400" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-gray-800 dark:text-white">{overdueCount}</div>
-          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">En retard</div>
-        </button>
-
-        <button
-          onClick={() =>
-            setFilterStatus(filterStatus === "upcoming" ? "all" : "upcoming")
-          }
-          className={`rounded-2xl border shadow-sm p-5 text-left transition
-                        ${filterStatus === "upcoming" ? "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800" : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700 hover:border-amber-200 dark:hover:border-amber-800"}`}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
-              <Clock size={20} className="text-amber-600 dark:text-amber-400" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-gray-800 dark:text-white">
-            {upcomingCount}
-          </div>
-          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">À venir</div>
-        </button>
-
-        <button
-          onClick={() => setFilterStatus(filterStatus === "ok" ? "all" : "ok")}
-          className={`rounded-2xl border shadow-sm p-5 text-left transition
-                        ${filterStatus === "ok" ? "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800" : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-700 hover:border-green-200 dark:hover:border-green-800"}`}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
-              <CheckCircle2 size={20} className="text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-gray-800 dark:text-white">{okCount}</div>
-          <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">OK</div>
-        </button>
+        ))}
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
+        <div className="relative flex-1 sm:max-w-md">
           <Search
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-500"
@@ -433,7 +393,7 @@ export default function RemindersPage() {
             </p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto"><table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
                 <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
@@ -588,7 +548,7 @@ export default function RemindersPage() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
 
@@ -715,7 +675,7 @@ export default function RemindersPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                     Kilométrage limite{" "}
