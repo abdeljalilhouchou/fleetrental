@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { logout } from '../../lib/api';
+import { logout, storageUrl } from '../../lib/api';
 import { useData } from '../context/DataContext';
 import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet } from 'lucide-react';
 
@@ -138,7 +138,7 @@ export default function Sidebar() {
                     <div className="w-9 h-9 bg-slate-700 rounded-full flex items-center justify-center ring-2 ring-slate-600 group-hover:ring-blue-500 transition overflow-hidden">
                         {user?.avatar ? (
                             <img
-                                src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${user.avatar}`}
+                                src={storageUrl(user.avatar)}
                                 alt="Avatar"
                                 className="w-full h-full object-cover"
                             />

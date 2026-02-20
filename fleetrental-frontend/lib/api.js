@@ -1,5 +1,12 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
+// Construire l'URL d'un fichier stocké (avatar, photo véhicule, etc.)
+export function storageUrl(path) {
+    if (!path) return null;
+    const base = API_URL.replace(/\/api\/?$/, '');
+    return `${base}/storage/${path}`;
+}
+
 // LOGIN
 export async function login(email, password) {
     const response = await fetch(`${API_URL}/login`, {

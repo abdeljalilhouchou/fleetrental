@@ -91,7 +91,7 @@ class VehicleController extends Controller
         }
 
         $request->validate([
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         $path = $request->file('photo')->store('vehicle_photos', 'public');

@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { getToken } from '../../../lib/api';
+import { getToken, storageUrl } from '../../../lib/api';
 import { useRouter } from 'next/navigation';
 import RoleProtector from '../../components/RoleProtector';
 import { Car, Plus, Edit2, Trash2, Search, CheckCircle2, Clock, AlertTriangle, XCircle, Repeat, AlertCircle, Eye, Camera, LayoutGrid, List } from 'lucide-react';
 
-const API_URL    = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-const STORAGE_URL = API_URL.replace('/api', '');
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 const STATUS_CONFIG = {
     available: {
@@ -205,7 +204,7 @@ export default function VehiclesPage() {
         }
     };
 
-    const photoUrl = (v) => (v?.photo && !failedPhotos.has(v.id)) ? `${STORAGE_URL}/storage/${v.photo}` : null;
+    const photoUrl = (v) => (v?.photo && !failedPhotos.has(v.id)) ? storageUrl(v.photo) : null;
     const onPhotoError = (id) => setFailedPhotos(prev => new Set(prev).add(id));
 
     const isAdmin = currentUser?.role === 'company_admin' || currentUser?.role === 'super_admin';

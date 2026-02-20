@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
-import { updateProfile, updateAvatar, removeAvatar, updatePreferences, updatePassword } from '../../../lib/api';
+import { updateProfile, updateAvatar, removeAvatar, updatePreferences, updatePassword, storageUrl } from '../../../lib/api';
 import RoleProtector from '../../components/RoleProtector';
 import {
     User, Mail, Phone, MapPin, Calendar, Camera, Trash2, Lock,
@@ -82,7 +82,7 @@ export default function ProfilePage() {
                 notifications_rental: user.notifications_rental ?? true,
             });
             if (user.avatar) {
-                setAvatarPreview(`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${user.avatar}`);
+                setAvatarPreview(storageUrl(user.avatar));
             }
         }
     }, [user]);
@@ -139,7 +139,7 @@ export default function ProfilePage() {
         try {
             const result = await updateAvatar(file);
             if (result.user?.avatar) {
-                setAvatarPreview(`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/${result.user.avatar}`);
+                setAvatarPreview(storageUrl(result.user.avatar));
             }
             await refresh('user');
             showMessage('avatar', 'success', 'Avatar mis à jour avec succès');
