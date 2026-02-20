@@ -94,8 +94,12 @@ class VehicleController extends Controller
             'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
-        $path = $request->file('photo')->store('vehicle_photos', 'public');
-        $vehicle->update(['photo' => $path]);
+        $file     = $request->file('photo');
+        $mimeType = $file->getMimeType();
+        $base64   = base64_encode(file_get_contents($file->getRealPath()));
+        $dataUrl  = "data:{$mimeType};base64,{$base64}";
+
+        $vehicle->update(['photo' => $dataUrl]);
 
         return response()->json($vehicle);
     }

@@ -82,7 +82,8 @@ export default function ProfilePage() {
                 notifications_rental: user.notifications_rental ?? true,
             });
             if (user.avatar) {
-                setAvatarPreview(storageUrl(user.avatar));
+                // base64 data URL → utiliser directement, sinon construire l'URL
+                setAvatarPreview(user.avatar.startsWith('data:') ? user.avatar : storageUrl(user.avatar));
             }
         }
     }, [user]);
@@ -139,7 +140,7 @@ export default function ProfilePage() {
         try {
             const result = await updateAvatar(file);
             if (result.user?.avatar) {
-                setAvatarPreview(storageUrl(result.user.avatar));
+                setAvatarPreview(result.user.avatar.startsWith('data:') ? result.user.avatar : storageUrl(result.user.avatar));
             }
             await refresh('user');
             showMessage('avatar', 'success', 'Avatar mis à jour avec succès');

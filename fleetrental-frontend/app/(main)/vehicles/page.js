@@ -204,7 +204,13 @@ export default function VehiclesPage() {
         }
     };
 
-    const photoUrl = (v) => (v?.photo && !failedPhotos.has(v.id)) ? storageUrl(v.photo) : null;
+    const photoUrl = (v) => {
+        if (!v?.photo || failedPhotos.has(v.id)) return null;
+        // base64 data URL stockée en BDD → utiliser directement
+        if (v.photo.startsWith('data:')) return v.photo;
+        // ancien chemin fichier → construire URL
+        return storageUrl(v.photo);
+    };
     const onPhotoError = (id) => setFailedPhotos(prev => new Set(prev).add(id));
 
     const isAdmin = currentUser?.role === 'company_admin' || currentUser?.role === 'super_admin';

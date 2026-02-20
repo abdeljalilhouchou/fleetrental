@@ -138,7 +138,7 @@ export default function Sidebar() {
                     <div className="w-9 h-9 bg-slate-700 rounded-full flex items-center justify-center ring-2 ring-slate-600 group-hover:ring-blue-500 transition overflow-hidden">
                         {user?.avatar ? (
                             <img
-                                src={storageUrl(user.avatar)}
+                                src={user.avatar?.startsWith('data:') ? user.avatar : storageUrl(user.avatar)}
                                 alt="Avatar"
                                 className="w-full h-full object-cover"
                             />

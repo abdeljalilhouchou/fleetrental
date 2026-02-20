@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -45,20 +44,14 @@ class ProfileController extends Controller
             'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:2048'],
         ]);
 
-        $user = $request->user();
+        $user     = $request->user();
+        $file     = $request->file('avatar');
+        $mimeType = $file->getMimeType();
+        $base64   = base64_encode(file_get_contents($file->getRealPath()));
+        $dataUrl  = "data:{$mimeType};base64,{$base64}";
 
-        // Supprimer l'ancien avatar s'il existe
-        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-            Storage::disk('public')->delete($user->avatar);
-        }
-
-        // Stocker le nouvel avatar
-        $path = $request->file('avatar')->store('avatars', 'public');
-        $user->avatar = $path;
+        $user->avatar = $dataUrl;
         $user->save();
-
-        // Générer l'URL complète
-        $user->avatar_url = Storage::url($path);
 
         return response()->json([
             'message' => 'Avatar mis à jour avec succès',
@@ -69,10 +62,6 @@ class ProfileController extends Controller
     public function removeAvatar(Request $request)
     {
         $user = $request->user();
-
-        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-            Storage::disk('public')->delete($user->avatar);
-        }
 
         $user->avatar = null;
         $user->save();
