@@ -5,7 +5,7 @@ import { useData } from '../../context/DataContext';
 import { getToken } from '../../../lib/api';
 import { useRouter } from 'next/navigation';
 import RoleProtector from '../../components/RoleProtector';
-import { Car, Plus, Edit2, Trash2, Search, CheckCircle2, Clock, AlertTriangle, XCircle, Repeat, AlertCircle, Eye, Camera } from 'lucide-react';
+import { Car, Plus, Edit2, Trash2, Search, CheckCircle2, Clock, AlertTriangle, XCircle, Repeat, AlertCircle, Eye, Camera, LayoutGrid, List } from 'lucide-react';
 
 const API_URL    = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const STORAGE_URL = API_URL.replace('/api', '');
@@ -69,6 +69,7 @@ export default function VehiclesPage() {
     const [filterStatus, setFilterStatus] = useState('all');
     const [detailVehicle, setDetailVehicle] = useState(null);
     const [failedPhotos, setFailedPhotos] = useState(new Set());
+    const [viewMode, setViewMode] = useState('cards');
     const router = useRouter();
 
     const headers = () => ({
@@ -291,17 +292,95 @@ export default function VehiclesPage() {
                     <option value="maintenance">En maintenance</option>
                     <option value="out_of_service">Hors service</option>
                 </select>
+                {/* Toggle vue */}
+                <div className="flex items-center bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-1 gap-1">
+                    <button onClick={() => setViewMode('cards')}
+                        className={`p-2 rounded-lg transition ${viewMode === 'cards' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                        title="Vue cartes">
+                        <LayoutGrid size={16} />
+                    </button>
+                    <button onClick={() => setViewMode('table')}
+                        className={`p-2 rounded-lg transition ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                        title="Vue tableau">
+                        <List size={16} />
+                    </button>
+                </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-                {filtered.length === 0 ? (
-                    <div className="text-center py-16">
-                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <Car size={28} className="text-gray-300 dark:text-gray-600" />
-                        </div>
-                        <p className="text-gray-500 dark:text-gray-400 font-semibold">Aucun véhicule trouvé</p>
+            {filtered.length === 0 ? (
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm text-center py-16">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Car size={28} className="text-gray-300 dark:text-gray-600" />
                     </div>
-                ) : (
+                    <p className="text-gray-500 dark:text-gray-400 font-semibold">Aucun véhicule trouvé</p>
+                </div>
+            ) : viewMode === 'cards' ? (
+                /* ── Vue Cartes ── */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filtered.map((v) => {
+                        const config = STATUS_CONFIG[v.status] || STATUS_CONFIG.available;
+                        const StatusIcon = config.icon;
+                        return (
+                            <div key={v.id} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                                {/* Photo */}
+                                <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                                    {photoUrl(v) ? (
+                                        <img src={photoUrl(v)} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover" onError={() => onPhotoError(v.id)} />
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-2 text-gray-300 dark:text-gray-600">
+                                            <Car size={36} />
+                                        </div>
+                                    )}
+                                    {/* Badge statut */}
+                                    <span className={`absolute top-2 left-2 inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg border ${config.textColor} ${config.bgColor} ${config.borderColor}`}>
+                                        <StatusIcon size={11} />
+                                        {config.label}
+                                    </span>
+                                </div>
+                                {/* Infos */}
+                                <div className="p-4 flex-1 flex flex-col gap-1">
+                                    <div className="font-bold text-gray-800 dark:text-gray-100 text-sm">{v.brand} {v.model}</div>
+                                    <div className="text-xs text-gray-400 dark:text-gray-500">{v.year} {v.vehicle_type ? `· ${v.vehicle_type}` : ''}</div>
+                                    <div className="text-xs font-mono text-gray-500 dark:text-gray-400 mt-1">{v.registration_number}</div>
+                                    <div className="flex items-center justify-between mt-2">
+                                        <span className="text-xs text-gray-400 dark:text-gray-500">{v.current_mileage?.toLocaleString()} km</span>
+                                        {v.daily_rate && (
+                                            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{Number(v.daily_rate).toLocaleString()} MAD/j</span>
+                                        )}
+                                    </div>
+                                </div>
+                                {/* Actions */}
+                                <div className="flex items-center gap-1 px-4 py-3 border-t border-gray-100 dark:border-gray-800">
+                                    <button onClick={() => setDetailVehicle(v)}
+                                        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 py-1.5 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition"
+                                        title="Voir les détails">
+                                        <Eye size={14} /> Détails
+                                    </button>
+                                    <button onClick={() => openStatusModal(v)}
+                                        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+                                        title="Changer le statut">
+                                        <Repeat size={14} /> Statut
+                                    </button>
+                                    {isAdmin && (
+                                        <button onClick={() => handleEdit(v)}
+                                            className="p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition">
+                                            <Edit2 size={14} />
+                                        </button>
+                                    )}
+                                    {isAdmin && (
+                                        <button onClick={() => handleDelete(v.id)}
+                                            className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                /* ── Vue Tableau ── */
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto"><table className="w-full min-w-[700px]">
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
@@ -317,7 +396,6 @@ export default function VehiclesPage() {
                             {filtered.map((v) => {
                                 const StatusIcon = STATUS_CONFIG[v.status]?.icon || Car;
                                 const config = STATUS_CONFIG[v.status] || STATUS_CONFIG.available;
-
                                 return (
                                     <tr key={v.id} className="border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition">
                                         <td className="px-6 py-4">
@@ -377,8 +455,8 @@ export default function VehiclesPage() {
                             })}
                         </tbody>
                     </table></div>
-                )}
-            </div>
+                </div>
+            )}
 
             {showStatusModal && selectedVehicle && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">

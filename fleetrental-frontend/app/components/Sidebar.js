@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { logout } from '../../lib/api';
 import { useData } from '../context/DataContext';
-import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet } from 'lucide-react';
 
 // Navigation par rôle
 const NAV_BY_ROLE = {
@@ -19,6 +19,7 @@ const NAV_BY_ROLE = {
         { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },
         { icon: Bell,            label: 'Rappels',      path: '/reminders' },
         { icon: FileText,        label: 'Locations',    path: '/rentals' },
+        { icon: Wallet,          label: 'Finances',     path: '/finances' },
         { icon: BarChart2,       label: 'Statistiques', path: '/stats' },
         { icon: Users,           label: 'Utilisateurs', path: '/users' },
     ],

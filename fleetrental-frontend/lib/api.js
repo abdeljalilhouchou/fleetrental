@@ -114,7 +114,13 @@ export async function updateAvatar(file) {
         throw new Error('Non authentifié');
     }
 
-    return response.json();
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || 'Erreur lors du téléchargement');
+    }
+
+    return data;
 }
 
 // Suppression de l'avatar

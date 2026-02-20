@@ -13,6 +13,7 @@ use App\Http\Controllers\SuperAdminStatsController;
 use App\Http\Controllers\RentalController;
 use App\Http\Controllers\RentalFileController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FinanceController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -82,6 +83,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/reminders/{reminder}', [MaintenanceReminderController::class, 'update']);
         Route::delete('/reminders/{reminder}', [MaintenanceReminderController::class, 'destroy']);
         Route::post('/reminders/{reminder}/renew', [MaintenanceReminderController::class, 'renew']);
+
+        // Finances
+        Route::get('/finances', [FinanceController::class, 'index']);
 
         // Gestion utilisateurs
         Route::get('/users', [UserController::class, 'index']);

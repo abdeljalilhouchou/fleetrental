@@ -10,25 +10,43 @@ return new class extends Migration
     {
         // ============ FIX VEHICLES TABLE ============
         Schema::table('vehicles', function (Blueprint $table) {
-            // Rename columns: make → brand, license_plate → registration_number, mileage → current_mileage
-            $table->renameColumn('make', 'brand');
-            $table->renameColumn('license_plate', 'registration_number');
-            $table->renameColumn('mileage', 'current_mileage');
+            // Rename columns only if old names still exist
+            if (Schema::hasColumn('vehicles', 'make') && !Schema::hasColumn('vehicles', 'brand')) {
+                $table->renameColumn('make', 'brand');
+            }
+            if (Schema::hasColumn('vehicles', 'license_plate') && !Schema::hasColumn('vehicles', 'registration_number')) {
+                $table->renameColumn('license_plate', 'registration_number');
+            }
+            if (Schema::hasColumn('vehicles', 'mileage') && !Schema::hasColumn('vehicles', 'current_mileage')) {
+                $table->renameColumn('mileage', 'current_mileage');
+            }
         });
 
         Schema::table('vehicles', function (Blueprint $table) {
-            // Make color nullable
-            $table->string('color')->nullable()->change();
+            // Make color nullable (only if column exists)
+            if (Schema::hasColumn('vehicles', 'color')) {
+                $table->string('color')->nullable()->change();
+            }
 
             // Change status from enum to varchar for flexibility
             $table->string('status')->default('available')->change();
 
-            // Add missing columns
-            $table->string('vin', 255)->nullable();
-            $table->date('purchase_date')->nullable();
-            $table->string('vehicle_type', 100)->nullable();
-            $table->decimal('daily_rate', 10, 2)->default(0)->nullable();
-            $table->string('photo', 500)->nullable();
+            // Add missing columns only if they don't exist
+            if (!Schema::hasColumn('vehicles', 'vin')) {
+                $table->string('vin', 255)->nullable();
+            }
+            if (!Schema::hasColumn('vehicles', 'purchase_date')) {
+                $table->date('purchase_date')->nullable();
+            }
+            if (!Schema::hasColumn('vehicles', 'vehicle_type')) {
+                $table->string('vehicle_type', 100)->nullable();
+            }
+            if (!Schema::hasColumn('vehicles', 'daily_rate')) {
+                $table->decimal('daily_rate', 10, 2)->default(0)->nullable();
+            }
+            if (!Schema::hasColumn('vehicles', 'photo')) {
+                $table->string('photo', 500)->nullable();
+            }
         });
 
         // ============ FIX COMPANIES TABLE ============
