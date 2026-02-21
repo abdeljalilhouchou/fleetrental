@@ -154,7 +154,7 @@ class RentalController extends Controller
                             'api-key'      => $apiKey,
                             'Content-Type' => 'application/json',
                         ])->post('https://api.brevo.com/v3/smtp/email', [
-                            'sender'      => ['name' => 'FleetRental', 'email' => 'noreply@fleetrental.com'],
+                            'sender'      => ['name' => 'FleetRental', 'email' => env('BREVO_SENDER_EMAIL', 'a2fd67001@smtp-brevo.com')],
                             'to'          => [['email' => $admin->email, 'name' => $admin->name]],
                             'subject'     => '🚗 Nouvelle location créée — ' . $rentalData['vehicle'],
                             'htmlContent' => $htmlContent,
