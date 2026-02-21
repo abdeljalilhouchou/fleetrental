@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\AppNotification;
 use App\Models\Maintenance;
+use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class MaintenanceController extends Controller
 {
@@ -33,7 +35,7 @@ class MaintenanceController extends Controller
         $maintenance = Maintenance::create($data);
 
         // Le véhicule passe automatiquement en maintenance
-        $vehicle = Vehicle::find($data['vehicle_id']);
+        $vehicle = Vehicle::with('company')->find($data['vehicle_id']);
         $vehicle->update(['status' => 'maintenance']);
 
         // Notification aux admins
@@ -44,6 +46,44 @@ class MaintenanceController extends Controller
             "Maintenance {$maintenance->type} sur {$vehicle->brand} {$vehicle->model}",
             ['maintenance_id' => $maintenance->id, 'vehicle_id' => $vehicle->id]
         );
+
+        // Email aux admins
+        $apiKey = env('BREVO_API_KEY');
+        if ($apiKey) {
+            $emailData = [
+                'vehicle'     => "{$vehicle->brand} {$vehicle->model} {$vehicle->year}",
+                'registration'=> $vehicle->registration_number,
+                'type'        => $maintenance->type,
+                'date'        => \Carbon\Carbon::parse($maintenance->date)->format('d/m/Y'),
+                'mileage'     => $maintenance->mileage_at_maintenance,
+                'cost'        => $maintenance->cost,
+                'description' => $maintenance->description,
+                'company'     => $vehicle->company->name ?? '',
+                'created_at'  => now()->format('d/m/Y à H:i'),
+            ];
+
+            $admins = User::where('company_id', $vehicle->company_id)
+                ->where('role', 'company_admin')
+                ->get();
+
+            foreach ($admins as $admin) {
+                try {
+                    $htmlContent = view('emails.maintenance_created', ['data' => $emailData])->render();
+                    Http::withHeaders([
+                        'api-key'      => $apiKey,
+                        'Content-Type' => 'application/json',
+                    ])->post('https://api.brevo.com/v3/smtp/email', [
+                        'sender'      => ['name' => 'FleetRental', 'email' => env('BREVO_SENDER_EMAIL', 'houchouabdeljalil501@gmail.com')],
+                        'to'          => [['email' => $admin->email, 'name' => $admin->name]],
+                        'subject'     => '🔧 Nouvelle maintenance — ' . $emailData['vehicle'],
+                        'htmlContent' => $htmlContent,
+                    ]);
+                    \Log::info("Email maintenance envoyé à {$admin->email}");
+                } catch (\Exception $e) {
+                    \Log::warning("Email maintenance non envoyé à {$admin->email}: " . $e->getMessage());
+                }
+            }
+        }
 
         return response()->json($maintenance->load('vehicle'), 201);
     }
