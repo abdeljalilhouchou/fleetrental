@@ -148,6 +148,9 @@ class RentalController extends Controller
             $apiKey = env('BREVO_API_KEY');
             if ($apiKey) {
                 foreach ($admins as $admin) {
+                    if (!$admin->notifications_email || !$admin->notifications_rental) {
+                        continue;
+                    }
                     try {
                         $htmlContent = view('emails.rental_created', ['rentalData' => $rentalData])->render();
                         Http::withHeaders([

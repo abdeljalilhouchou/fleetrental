@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class MaintenanceController extends Controller
 {
@@ -67,6 +68,9 @@ class MaintenanceController extends Controller
                 ->get();
 
             foreach ($admins as $admin) {
+                if (!$admin->notifications_email || !$admin->notifications_maintenance) {
+                    continue;
+                }
                 try {
                     $htmlContent = view('emails.maintenance_created', ['data' => $emailData])->render();
                     Http::withHeaders([
