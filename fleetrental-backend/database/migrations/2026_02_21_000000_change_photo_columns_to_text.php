@@ -8,25 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Changer photo des véhicules en TEXT pour stocker le base64
-        Schema::table('vehicles', function (Blueprint $table) {
-            $table->text('photo')->nullable()->change();
-        });
+        // Changer photo des véhicules en LONGTEXT pour stocker le base64 (images jusqu'à 4GB)
+        Schema::getConnection()->statement('ALTER TABLE vehicles MODIFY COLUMN photo LONGTEXT NULL');
 
-        // Changer avatar des utilisateurs en TEXT pour stocker le base64
-        Schema::table('users', function (Blueprint $table) {
-            $table->text('avatar')->nullable()->change();
-        });
+        // Changer avatar des utilisateurs en LONGTEXT pour stocker le base64
+        Schema::getConnection()->statement('ALTER TABLE users MODIFY COLUMN avatar LONGTEXT NULL');
     }
 
     public function down(): void
     {
-        Schema::table('vehicles', function (Blueprint $table) {
-            $table->string('photo', 500)->nullable()->change();
-        });
-
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('avatar')->nullable()->change();
-        });
+        Schema::getConnection()->statement('ALTER TABLE vehicles MODIFY COLUMN photo VARCHAR(500) NULL');
+        Schema::getConnection()->statement('ALTER TABLE users MODIFY COLUMN avatar VARCHAR(255) NULL');
     }
 };
