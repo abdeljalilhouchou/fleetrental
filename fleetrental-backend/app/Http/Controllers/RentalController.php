@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\RentalCreatedMail;
 use App\Models\AppNotification;
 use App\Models\Rental;
+use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class RentalController extends Controller
 {
@@ -103,7 +106,7 @@ class RentalController extends Controller
 
             DB::commit();
 
-            // Notification aux admins
+            // Notification in-app aux admins
             AppNotification::notifyCompanyAdmins(
                 $vehicle->company_id,
                 'rental_created',
@@ -114,6 +117,42 @@ class RentalController extends Controller
 
             // Recharger les relations
             $rental->load(['vehicle', 'company']);
+
+            // Email aux admins de l'entreprise
+            $startDate = \Carbon\Carbon::parse($rental->start_date)->format('d/m/Y');
+            $endDate   = \Carbon\Carbon::parse($rental->end_date)->format('d/m/Y');
+            $days      = \Carbon\Carbon::parse($rental->start_date)->diffInDays(\Carbon\Carbon::parse($rental->end_date)) + 1;
+
+            $rentalData = [
+                'vehicle'         => "{$vehicle->brand} {$vehicle->model} {$vehicle->year}",
+                'registration'    => $vehicle->registration_number,
+                'customer_name'   => $rental->customer_name,
+                'customer_phone'  => $rental->customer_phone,
+                'customer_email'  => $rental->customer_email,
+                'start_date'      => $startDate,
+                'end_date'        => $endDate,
+                'days'            => $days,
+                'start_mileage'   => $rental->start_mileage,
+                'daily_rate'      => $rental->daily_rate,
+                'total'           => $rental->total_price,
+                'deposit'         => $rental->deposit_amount,
+                'paid'            => $rental->paid_amount,
+                'notes'           => $rental->notes,
+                'company'         => $rental->company->name ?? '',
+                'created_at'      => now()->format('d/m/Y à H:i'),
+            ];
+
+            $admins = User::where('company_id', $vehicle->company_id)
+                ->where('role', 'company_admin')
+                ->get();
+
+            foreach ($admins as $admin) {
+                try {
+                    Mail::to($admin->email)->send(new RentalCreatedMail($rentalData));
+                } catch (\Exception $e) {
+                    \Log::warning("Email non envoyé à {$admin->email}: " . $e->getMessage());
+                }
+            }
 
             return response()->json($rental, 201);
 
