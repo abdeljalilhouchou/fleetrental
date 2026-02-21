@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { logout, storageUrl } from '../../lib/api';
 import { useData } from '../context/DataContext';
 import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 // Navigation par rôle
 const NAV_BY_ROLE = {
@@ -157,11 +158,14 @@ export default function Sidebar() {
                     </div>
                     <Settings size={14} className="text-slate-500 group-hover:text-blue-400 transition" />
                 </button>
-                <button onClick={logout}
-                    className="w-full flex items-center gap-2 text-slate-400 hover:text-red-400 text-sm transition px-3 py-2 rounded-lg hover:bg-slate-800">
-                    <LogOut size={16} />
-                    Déconnexion
-                </button>
+                <div className="flex items-center gap-2">
+                    <NotificationBell />
+                    <button onClick={logout}
+                        className="flex-1 flex items-center gap-2 text-slate-400 hover:text-red-400 text-sm transition px-3 py-2 rounded-lg hover:bg-slate-800">
+                        <LogOut size={16} />
+                        Déconnexion
+                    </button>
+                </div>
             </div>
         </>
     );

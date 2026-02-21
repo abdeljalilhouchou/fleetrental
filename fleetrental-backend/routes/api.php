@@ -14,6 +14,7 @@ use App\Http\Controllers\RentalController;
 use App\Http\Controllers\RentalFileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\NotificationController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -29,6 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
     Route::put('/profile/preferences', [ProfileController::class, 'updatePreferences']);
     Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+
+    // ═══════════════════════════════════════════════════════════
+    // NOTIFICATIONS - Accessible par tous les utilisateurs authentifiés
+    // ═══════════════════════════════════════════════════════════
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
     // ═══════════════════════════════════════════════════════════
     // ROUTES ACCESSIBLES PAR TOUS (super_admin, company_admin, employee)

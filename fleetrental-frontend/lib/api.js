@@ -137,6 +137,23 @@ export async function removeAvatar() {
     });
 }
 
+// ─── Notifications ───────────────────────────────────────────
+export async function getNotifications() {
+    return apiRequest('/notifications');
+}
+
+export async function getUnreadCount() {
+    return apiRequest('/notifications/unread-count');
+}
+
+export async function markNotificationRead(id) {
+    return apiRequest(`/notifications/${id}/read`, { method: 'PATCH' });
+}
+
+export async function markAllNotificationsRead() {
+    return apiRequest('/notifications/read-all', { method: 'POST' });
+}
+
 // Mise à jour des préférences (thème, langue, notifications)
 export async function updatePreferences(data) {
     return apiRequest('/profile/preferences', {

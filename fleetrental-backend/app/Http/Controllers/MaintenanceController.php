@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppNotification;
 use App\Models\Maintenance;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
@@ -32,7 +33,17 @@ class MaintenanceController extends Controller
         $maintenance = Maintenance::create($data);
 
         // Le véhicule passe automatiquement en maintenance
-        Vehicle::find($data['vehicle_id'])->update(['status' => 'maintenance']);
+        $vehicle = Vehicle::find($data['vehicle_id']);
+        $vehicle->update(['status' => 'maintenance']);
+
+        // Notification aux admins
+        AppNotification::notifyCompanyAdmins(
+            $vehicle->company_id,
+            'maintenance_created',
+            'Nouvelle maintenance',
+            "Maintenance {$maintenance->type} sur {$vehicle->brand} {$vehicle->model}",
+            ['maintenance_id' => $maintenance->id, 'vehicle_id' => $vehicle->id]
+        );
 
         return response()->json($maintenance->load('vehicle'), 201);
     }
@@ -67,6 +78,16 @@ class MaintenanceController extends Controller
         if (!$hasOtherInProgress) {
             Vehicle::find($maintenance->vehicle_id)->update(['status' => 'available']);
         }
+
+        // Notification aux admins
+        $vehicle = Vehicle::find($maintenance->vehicle_id);
+        AppNotification::notifyCompanyAdmins(
+            $vehicle->company_id,
+            'maintenance_completed',
+            'Maintenance terminée',
+            "Maintenance {$maintenance->type} terminée sur {$vehicle->brand} {$vehicle->model}",
+            ['maintenance_id' => $maintenance->id, 'vehicle_id' => $vehicle->id]
+        );
 
         return response()->json($maintenance->load('vehicle'));
     }

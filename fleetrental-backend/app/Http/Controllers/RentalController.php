@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppNotification;
 use App\Models\Rental;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
@@ -102,6 +103,15 @@ class RentalController extends Controller
 
             DB::commit();
 
+            // Notification aux admins
+            AppNotification::notifyCompanyAdmins(
+                $vehicle->company_id,
+                'rental_created',
+                'Nouvelle location créée',
+                "Location de {$vehicle->brand} {$vehicle->model} pour {$rental->customer_name}",
+                ['rental_id' => $rental->id, 'vehicle_id' => $vehicle->id]
+            );
+
             // Recharger les relations
             $rental->load(['vehicle', 'company']);
 
@@ -196,6 +206,15 @@ class RentalController extends Controller
 
             DB::commit();
 
+            // Notification aux admins
+            AppNotification::notifyCompanyAdmins(
+                $rental->company_id,
+                'rental_completed',
+                'Location terminée',
+                "Retour de {$rental->vehicle->brand} {$rental->vehicle->model} — {$rental->customer_name}",
+                ['rental_id' => $rental->id, 'vehicle_id' => $rental->vehicle_id]
+            );
+
             return response()->json($rental->load(['vehicle', 'company']));
         } catch (\Exception $e) {
             DB::rollBack();
@@ -224,6 +243,15 @@ class RentalController extends Controller
             $rental->vehicle->update(['status' => 'available']);
 
             DB::commit();
+
+            // Notification aux admins
+            AppNotification::notifyCompanyAdmins(
+                $rental->company_id,
+                'rental_cancelled',
+                'Location annulée',
+                "Annulation location de {$rental->vehicle->brand} {$rental->vehicle->model} — {$rental->customer_name}",
+                ['rental_id' => $rental->id, 'vehicle_id' => $rental->vehicle_id]
+            );
 
             return response()->json($rental->load(['vehicle', 'company']));
         } catch (\Exception $e) {
