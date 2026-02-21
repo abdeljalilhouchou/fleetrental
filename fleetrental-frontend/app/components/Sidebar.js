@@ -41,7 +41,7 @@ const ROLE_LABELS = {
 export default function Sidebar() {
     const router   = useRouter();
     const pathname = usePathname();
-    const { user, reminders } = useData();
+    const { user, reminders, loading } = useData();
     const [isOpen, setIsOpen] = useState(false);
 
     const role = user?.role || 'employee';
@@ -91,43 +91,54 @@ export default function Sidebar() {
 
             {/* Navigation */}
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                {role === 'super_admin' && (
-                    <div className="mb-2 px-4">
-                        <p className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
-                            <Shield size={11} />
-                            Super Admin
-                        </p>
-                    </div>
+                {loading || !user ? (
+                    /* Skeleton pendant le chargement */
+                    [1,2,3,4].map(i => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl">
+                            <div className="w-5 h-5 bg-slate-700 rounded animate-pulse" />
+                            <div className="h-4 bg-slate-700 rounded animate-pulse flex-1" />
+                        </div>
+                    ))
+                ) : (
+                    <>
+                        {role === 'super_admin' && (
+                            <div className="mb-2 px-4">
+                                <p className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                                    <Shield size={11} />
+                                    Super Admin
+                                </p>
+                            </div>
+                        )}
+
+                        {navItems.map((item) => {
+                            const Icon     = item.icon;
+                            const isActive = pathname === item.path;
+                            const isReminders = item.path === '/reminders';
+                            const showBadge = isReminders && overdueRemindersCount > 0;
+
+                            let activeColor = 'bg-blue-600 shadow-blue-600/20';
+                            if (role === 'super_admin') activeColor = 'bg-purple-600 shadow-purple-600/20';
+                            if (role === 'company_admin') activeColor = 'bg-green-600 shadow-green-600/20';
+
+                            return (
+                                <button key={item.path} onClick={() => router.push(item.path)}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition
+                                        ${isActive
+                                            ? `${activeColor} text-white shadow-lg`
+                                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                                >
+                                    <Icon size={18} />
+                                    <span className="flex-1 text-left">{item.label}</span>
+                                    {showBadge && (
+                                        <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
+                                            {overdueRemindersCount > 99 ? '99+' : overdueRemindersCount}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </>
                 )}
-
-                {navItems.map((item) => {
-                    const Icon     = item.icon;
-                    const isActive = pathname === item.path;
-                    const isReminders = item.path === '/reminders';
-                    const showBadge = isReminders && overdueRemindersCount > 0;
-
-                    // Couleur selon le rôle
-                    let activeColor = 'bg-blue-600 shadow-blue-600/20';
-                    if (role === 'super_admin') activeColor = 'bg-purple-600 shadow-purple-600/20';
-                    if (role === 'company_admin') activeColor = 'bg-green-600 shadow-green-600/20';
-
-                    return (
-                        <button key={item.path} onClick={() => router.push(item.path)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition
-                                ${isActive
-                                    ? `${activeColor} text-white shadow-lg`
-                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-                        >
-                            <Icon size={18} />
-                            <span className="flex-1 text-left">{item.label}</span>
-                            {showBadge && (
-                                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
-                                    {overdueRemindersCount > 99 ? '99+' : overdueRemindersCount}
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
             </nav>
 
             {/* User */}
