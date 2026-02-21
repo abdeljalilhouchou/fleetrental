@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\RentalCreatedMail;
 use App\Models\AppNotification;
 use App\Models\Rental;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 
 class RentalController extends Controller
 {
@@ -146,11 +145,24 @@ class RentalController extends Controller
                 ->where('role', 'company_admin')
                 ->get();
 
-            foreach ($admins as $admin) {
-                try {
-                    Mail::to($admin->email)->send(new RentalCreatedMail($rentalData));
-                } catch (\Exception $e) {
-                    \Log::warning("Email non envoyé à {$admin->email}: " . $e->getMessage());
+            $apiKey = env('BREVO_API_KEY');
+            if ($apiKey) {
+                foreach ($admins as $admin) {
+                    try {
+                        $htmlContent = view('emails.rental_created', ['rentalData' => $rentalData])->render();
+                        Http::withHeaders([
+                            'api-key'      => $apiKey,
+                            'Content-Type' => 'application/json',
+                        ])->post('https://api.brevo.com/v3/smtp/email', [
+                            'sender'      => ['name' => 'FleetRental', 'email' => 'noreply@fleetrental.com'],
+                            'to'          => [['email' => $admin->email, 'name' => $admin->name]],
+                            'subject'     => '🚗 Nouvelle location créée — ' . $rentalData['vehicle'],
+                            'htmlContent' => $htmlContent,
+                        ]);
+                        \Log::info("Email envoyé à {$admin->email}");
+                    } catch (\Exception $e) {
+                        \Log::warning("Email non envoyé à {$admin->email}: " . $e->getMessage());
+                    }
                 }
             }
 
