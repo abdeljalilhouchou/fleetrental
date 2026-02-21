@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, FileText, CheckCircle, XCircle, Wrench, X } from 'lucide-react';
-import { getNotifications, getUnreadCount, markAllNotificationsRead } from '../../../lib/api';
+import { getNotifications, getUnreadCount, markAllNotificationsRead } from '../../lib/api';
 
 const TYPE_CONFIG = {
     rental_created:       { icon: FileText,      color: 'text-blue-500',   bg: 'bg-blue-50 dark:bg-blue-900/30' },
