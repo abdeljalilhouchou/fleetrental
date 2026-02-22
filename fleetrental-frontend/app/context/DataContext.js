@@ -37,6 +37,10 @@ export function DataProvider({ children }) {
             if (res.ok) {
                 const userData = await res.json();
                 setUser(userData);
+                // Persist theme to localStorage for instant theme on next page load
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('theme', userData.theme || 'dark');
+                }
                 return userData;
             }
         } catch (e) {

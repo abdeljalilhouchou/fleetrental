@@ -47,7 +47,8 @@ export default function Sidebar() {
     const role = user?.role || 'employee';
     const navItems = NAV_BY_ROLE[role] || NAV_BY_ROLE.employee;
     const roleInfo = ROLE_LABELS[role];
-    const isDark = user?.theme !== 'light';
+    const storedTheme = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
+    const isDark = user ? user.theme === 'dark' : storedTheme === 'dark';
 
     // Classes conditionnelles selon le thème
     const s = {
