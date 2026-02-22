@@ -24,7 +24,7 @@ export function DataProvider({ children }) {
     );
     const router = useRouter();
 
-    // Fonction partagée pour changer le thème (met à jour l'état, le DOM et localStorage)
+    // Applique le thème, met à jour le DOM et localStorage
     const setTheme = useCallback((newTheme) => {
         setThemeState(newTheme);
         if (typeof window !== 'undefined') {
