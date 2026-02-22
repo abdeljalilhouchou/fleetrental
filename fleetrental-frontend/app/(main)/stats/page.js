@@ -66,7 +66,8 @@ const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent })
 };
 
 export default function StatsPage() {
-    const { stats, loading } = useData();
+    const { stats, loading, user } = useData();
+    const isDark = user?.theme === 'dark';
 
     if (loading || !stats) {
         return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Chargement...</div></div>;
@@ -278,7 +279,7 @@ export default function StatsPage() {
                                 tick={{ fontSize: 11, fill: '#9ca3af' }}
                                 tickFormatter={(v) => `${v}€`}
                             />
-                            <Tooltip content={<BarTooltip />} />
+                            <Tooltip content={<BarTooltip />} cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }} />
                             <Bar yAxisId="left" dataKey="count" radius={[6, 6, 0, 0]} barSize={28}>
                                 {barData.map((entry, index) => (
                                     <Cell key={index} fill={TYPE_COLORS[index % TYPE_COLORS.length]} />
