@@ -19,7 +19,23 @@ export function DataProvider({ children }) {
     const [stats, setStats] = useState(null);
     const [superAdminStats, setSuperAdminStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [theme, setThemeState] = useState(() =>
+        typeof window !== 'undefined' ? (localStorage.getItem('theme') || 'dark') : 'dark'
+    );
     const router = useRouter();
+
+    // Fonction partagée pour changer le thème (met à jour l'état, le DOM et localStorage)
+    const setTheme = useCallback((newTheme) => {
+        setThemeState(newTheme);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('theme', newTheme);
+            if (newTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+    }, []);
 
     const headers = () => ({
         'Content-Type': 'application/json',
@@ -37,10 +53,8 @@ export function DataProvider({ children }) {
             if (res.ok) {
                 const userData = await res.json();
                 setUser(userData);
-                // Persist theme to localStorage for instant theme on next page load
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('theme', userData.theme || 'dark');
-                }
+                // Sync theme state with user preference from DB
+                setTheme(userData.theme || 'dark');
                 return userData;
             }
         } catch (e) {
@@ -244,6 +258,8 @@ export function DataProvider({ children }) {
 
     const value = {
         user,
+        theme,
+        setTheme,
         vehicles,
         maintenances,
         reminders,

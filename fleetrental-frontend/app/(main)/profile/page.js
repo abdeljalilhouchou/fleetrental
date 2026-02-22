@@ -32,7 +32,7 @@ const ROLE_LABELS = {
 };
 
 export default function ProfilePage() {
-    const { user, refresh } = useData();
+    const { user, refresh, setTheme: setGlobalTheme } = useData();
     const fileInputRef = useRef(null);
 
     // États pour les formulaires
@@ -88,17 +88,6 @@ export default function ProfilePage() {
         }
     }, [user]);
 
-    // Appliquer le thème (seulement après chargement utilisateur pour éviter flash)
-    useEffect(() => {
-        if (!user) return;
-        if (preferences.theme === 'dark') {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        }
-    }, [preferences.theme, user]);
 
     const showMessage = (section, type, text) => {
         setMessages(prev => ({ ...prev, [section]: { type, text } }));
@@ -474,7 +463,7 @@ export default function ProfilePage() {
                             <div className="flex gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => setPreferences(prev => ({ ...prev, theme: 'light' }))}
+                                    onClick={() => { setPreferences(prev => ({ ...prev, theme: 'light' })); setGlobalTheme('light'); }}
                                     className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition ${
                                         preferences.theme === 'light'
                                             ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
@@ -486,7 +475,7 @@ export default function ProfilePage() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setPreferences(prev => ({ ...prev, theme: 'dark' }))}
+                                    onClick={() => { setPreferences(prev => ({ ...prev, theme: 'dark' })); setGlobalTheme('dark'); }}
                                     className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition ${
                                         preferences.theme === 'dark'
                                             ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
