@@ -28,6 +28,7 @@ class User extends Authenticatable
         'notifications_email',
         'notifications_maintenance',
         'notifications_rental',
+        'is_active',
     ];
 
     protected $hidden = [
@@ -44,6 +45,7 @@ class User extends Authenticatable
             'notifications_email' => 'boolean',
             'notifications_maintenance' => 'boolean',
             'notifications_rental' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
     // Un utilisateur appartient à une entreprise

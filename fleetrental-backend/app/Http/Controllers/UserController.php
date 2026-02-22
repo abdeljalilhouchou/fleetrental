@@ -140,6 +140,30 @@ class UserController extends Controller
         return response()->json(['message' => 'Mot de passe réinitialisé avec succès']);
     }
 
+    public function toggleActive(User $user)
+    {
+        $currentUser = request()->user();
+
+        // Seul le super_admin peut activer/désactiver
+        if (!$currentUser->isSuperAdmin()) {
+            return response()->json(['message' => 'Accès refusé'], 403);
+        }
+
+        // Ne peut pas désactiver son propre compte
+        if ($user->id === $currentUser->id) {
+            return response()->json(['message' => 'Vous ne pouvez pas désactiver votre propre compte'], 422);
+        }
+
+        $user->update(['is_active' => !$user->is_active]);
+
+        $status = $user->is_active ? 'activé' : 'désactivé';
+        return response()->json([
+            'message'   => "Utilisateur {$status} avec succès",
+            'is_active' => $user->is_active,
+            'user'      => $user->load('company'),
+        ]);
+    }
+
     public function destroy(User $user)
     {
         $currentUser = request()->user();

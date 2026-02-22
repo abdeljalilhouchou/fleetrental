@@ -6,7 +6,8 @@ import { getToken } from '../../../lib/api';
 import RoleProtector from '../../components/RoleProtector';
 import {
     Users, Plus, Edit2, Trash2, Search, Shield, XCircle,
-    AlertCircle, Mail, Key, User, Building2, ChevronDown
+    AlertCircle, Mail, Key, User, Building2, ChevronDown,
+    ToggleLeft, ToggleRight
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -146,6 +147,22 @@ export default function UsersPage() {
         }
     };
 
+    // ── TOGGLE ACTIVE ─────────────────────────────
+    const handleToggleActive = async (u) => {
+        const action = u.is_active ? 'désactiver' : 'activer';
+        if (!confirm(`Voulez-vous ${action} le compte de ${u.name} ?`)) return;
+        const res = await fetch(`${API_URL}/users/${u.id}/toggle-active`, {
+            method: 'PATCH', headers: headers(),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            setError(data.message);
+            setTimeout(() => setError(''), 3000);
+            return;
+        }
+        await refreshUsers();
+    };
+
     // ── FILTRES ───────────────────────────────────
     const filtered = users.filter(u => {
         const matchSearch = `${u.name} ${u.email}`.toLowerCase().includes(search.toLowerCase());
@@ -235,6 +252,7 @@ export default function UsersPage() {
                                 <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Utilisateur</th>
                                 <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Rôle</th>
                                 <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Entreprise</th>
+                                <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Statut</th>
                                 <th className="text-left px-6 py-3.5 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -277,6 +295,19 @@ export default function UsersPage() {
                                         )}
                                     </td>
 
+                                    {/* Statut */}
+                                    <td className="px-6 py-4">
+                                        {u.is_active !== false ? (
+                                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800">
+                                                Actif
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800">
+                                                Inactif
+                                            </span>
+                                        )}
+                                    </td>
+
                                     {/* Actions */}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-1">
@@ -286,6 +317,15 @@ export default function UsersPage() {
                                             {canReset(u) && (
                                                 <button onClick={() => handleOpenReset(u)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition" title="Réinitialiser mot de passe">
                                                     <Key size={16} />
+                                                </button>
+                                            )}
+                                            {currentUser?.role === 'super_admin' && u.id !== currentUser.id && (
+                                                <button onClick={() => handleToggleActive(u)}
+                                                    className={`p-2 rounded-lg transition ${u.is_active !== false
+                                                        ? 'text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30'
+                                                        : 'text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30'}`}
+                                                    title={u.is_active !== false ? 'Désactiver le compte' : 'Activer le compte'}>
+                                                    {u.is_active !== false ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
                                                 </button>
                                             )}
                                             <button onClick={() => handleDelete(u.id)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition">

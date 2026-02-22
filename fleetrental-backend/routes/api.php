@@ -102,6 +102,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
         Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword']);
+        Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive']);
     });
 
     // ═══════════════════════════════════════════════════════════

@@ -21,7 +21,12 @@ class AuthController extends Controller
             return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
-        $user  = Auth::user();
+        $user = Auth::user();
+
+        if (!$user->is_active) {
+            Auth::logout();
+            return response()->json(['message' => 'Votre compte a été désactivé. Contactez votre administrateur.'], 403);
+        }
         $token = $user->createToken('auth_token')->plainTextToken;
 
         // Détermine la redirection selon le rôle
