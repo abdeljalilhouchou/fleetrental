@@ -28,7 +28,7 @@ const NAV_BY_ROLE = {
         { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
         { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },
         { icon: Bell,            label: 'Rappels',      path: '/reminders' },
-        { icon: FileText, label: 'Locations',    path: '/rentals' },
+        { icon: FileText,        label: 'Locations',    path: '/rentals' },
     ],
 };
 
@@ -41,34 +41,12 @@ const ROLE_LABELS = {
 export default function Sidebar() {
     const router   = useRouter();
     const pathname = usePathname();
-    const { user, reminders, loading, theme } = useData();
+    const { user, reminders, loading } = useData();
     const [isOpen, setIsOpen] = useState(false);
 
     const role = user?.role || 'employee';
     const navItems = NAV_BY_ROLE[role] || NAV_BY_ROLE.employee;
     const roleInfo = ROLE_LABELS[role];
-    const isDark = theme === 'dark';
-
-    // Classes conditionnelles selon le thème
-    const s = {
-        bg:           isDark ? 'bg-slate-900'  : 'bg-slate-100',
-        border:       isDark ? 'border-slate-800' : 'border-slate-200',
-        logo:         isDark ? 'text-white'    : 'text-slate-800',
-        companyBadge: isDark ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600 border border-slate-200',
-        companyIcon:  isDark ? 'text-blue-400' : 'text-blue-500',
-        navInactive:  isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900',
-        sectionLabel: isDark ? 'text-slate-600' : 'text-slate-400',
-        skeleton:     isDark ? 'bg-slate-700'  : 'bg-slate-300',
-        userHover:    isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-200',
-        userName:     isDark ? 'text-white'    : 'text-slate-800',
-        userEmail:    isDark ? 'text-slate-500' : 'text-slate-400',
-        settingsIcon: isDark ? 'text-slate-500 group-hover:text-blue-400' : 'text-slate-400 group-hover:text-blue-500',
-        avatarBg:     isDark ? 'bg-slate-700 ring-slate-600' : 'bg-slate-200 ring-slate-300',
-        avatarIcon:   isDark ? 'text-slate-300' : 'text-slate-500',
-        logoutBtn:    isDark ? 'text-slate-400 hover:text-red-400 hover:bg-slate-800' : 'text-slate-500 hover:text-red-500 hover:bg-slate-200',
-        hamburger:    isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-800 border border-slate-200',
-        closeBtn:     isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-800',
-    };
 
     // Calculer les rappels en retard (utilise computed_status du backend)
     const overdueRemindersCount = reminders?.filter((r) => r.computed_status === 'overdue').length || 0;
@@ -90,19 +68,19 @@ export default function Sidebar() {
     const sidebarContent = (
         <>
             {/* Logo */}
-            <div className={`p-6 border-b ${s.border}`}>
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
                         <Car size={20} className="text-white" />
                     </div>
-                    <span className={`font-bold text-lg ${s.logo}`}>FleetRental</span>
-                    <button onClick={() => setIsOpen(false)} className={`lg:hidden ml-auto ${s.closeBtn}`}>
+                    <span className="font-bold text-lg text-slate-800 dark:text-white">FleetRental</span>
+                    <button onClick={() => setIsOpen(false)} className="lg:hidden ml-auto text-slate-400 hover:text-slate-800 dark:hover:text-white">
                         <X size={20} />
                     </button>
                 </div>
                 {role !== 'super_admin' && user?.company && (
-                    <div className={`mt-4 flex items-center gap-2 rounded-lg px-3 py-2 ${s.companyBadge}`}>
-                        <Building2 size={14} className={s.companyIcon} />
+                    <div className="mt-4 flex items-center gap-2 rounded-lg px-3 py-2 bg-white text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-transparent">
+                        <Building2 size={14} className="text-blue-500 dark:text-blue-400" />
                         <span className="text-xs font-medium truncate">{user.company.name}</span>
                     </div>
                 )}
@@ -113,15 +91,15 @@ export default function Sidebar() {
                 {loading || !user ? (
                     [1,2,3,4].map(i => (
                         <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl">
-                            <div className={`w-5 h-5 ${s.skeleton} rounded animate-pulse`} />
-                            <div className={`h-4 ${s.skeleton} rounded animate-pulse flex-1`} />
+                            <div className="w-5 h-5 bg-slate-300 dark:bg-slate-700 rounded animate-pulse" />
+                            <div className="h-4 bg-slate-300 dark:bg-slate-700 rounded animate-pulse flex-1" />
                         </div>
                     ))
                 ) : (
                     <>
                         {role === 'super_admin' && (
                             <div className="mb-2 px-4">
-                                <p className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${s.sectionLabel}`}>
+                                <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-slate-400 dark:text-slate-600">
                                     <Shield size={11} />
                                     Super Admin
                                 </p>
@@ -141,7 +119,10 @@ export default function Sidebar() {
                             return (
                                 <button key={item.path} onClick={() => router.push(item.path)}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition
-                                        ${isActive ? `${activeColor} text-white shadow-lg` : s.navInactive}`}
+                                        ${isActive
+                                            ? `${activeColor} text-white shadow-lg`
+                                            : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+                                        }`}
                                 >
                                     <Icon size={18} />
                                     <span className="flex-1 text-left">{item.label}</span>
@@ -158,32 +139,32 @@ export default function Sidebar() {
             </nav>
 
             {/* User */}
-            <div className={`p-4 border-t ${s.border}`}>
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800">
                 <button onClick={() => router.push('/profile')}
-                    className={`w-full flex items-center gap-3 mb-3 px-2 py-2 rounded-lg transition group ${s.userHover}`}
+                    className="w-full flex items-center gap-3 mb-3 px-2 py-2 rounded-lg transition group hover:bg-slate-200 dark:hover:bg-slate-800"
                 >
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ring-2 group-hover:ring-blue-500 transition overflow-hidden ${s.avatarBg}`}>
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center ring-2 ring-slate-300 dark:ring-slate-600 group-hover:ring-blue-500 transition overflow-hidden bg-slate-200 dark:bg-slate-700">
                         {user?.avatar ? (
                             <img src={user.avatar?.startsWith('data:') ? user.avatar : storageUrl(user.avatar)} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
-                            <User size={16} className={s.avatarIcon} />
+                            <User size={16} className="text-slate-500 dark:text-slate-300" />
                         )}
                     </div>
                     <div className="flex-1 min-w-0 text-left">
-                        <div className={`text-sm font-semibold truncate flex items-center gap-1.5 ${s.userName}`}>
+                        <div className="text-sm font-semibold truncate flex items-center gap-1.5 text-slate-800 dark:text-white">
                             {user?.name || 'Utilisateur'}
                             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${roleInfo?.color} text-white`}>
                                 {roleInfo?.badge}
                             </span>
                         </div>
-                        <div className={`text-xs truncate ${s.userEmail}`}>{user?.email || ''}</div>
+                        <div className="text-xs truncate text-slate-400 dark:text-slate-500">{user?.email || ''}</div>
                     </div>
-                    <Settings size={14} className={`transition ${s.settingsIcon}`} />
+                    <Settings size={14} className="transition text-slate-400 group-hover:text-blue-500 dark:text-slate-500 dark:group-hover:text-blue-400" />
                 </button>
                 <div className="flex items-center gap-2">
                     <NotificationBell />
                     <button onClick={logout}
-                        className={`flex-1 flex items-center gap-2 text-sm transition px-3 py-2 rounded-lg ${s.logoutBtn}`}>
+                        className="flex-1 flex items-center gap-2 text-sm transition px-3 py-2 rounded-lg text-slate-500 hover:text-red-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-red-400 dark:hover:bg-slate-800">
                         <LogOut size={16} />
                         Déconnexion
                     </button>
@@ -195,12 +176,12 @@ export default function Sidebar() {
     return (
         <>
             {/* Hamburger button - mobile only */}
-            <button onClick={() => setIsOpen(true)} className={`lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl shadow-lg ${s.hamburger}`}>
+            <button onClick={() => setIsOpen(true)} className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl shadow-lg bg-white text-slate-800 border border-slate-200 dark:bg-slate-900 dark:text-white dark:border-transparent">
                 <Menu size={22} />
             </button>
 
             {/* Desktop sidebar */}
-            <aside className={`hidden lg:flex w-64 flex-col h-screen sticky top-0 shrink-0 ${s.bg}`}>
+            <aside className="hidden lg:flex w-64 flex-col h-screen sticky top-0 shrink-0 bg-slate-100 dark:bg-slate-900">
                 {sidebarContent}
             </aside>
 
@@ -208,7 +189,7 @@ export default function Sidebar() {
             {isOpen && (
                 <div className="lg:hidden fixed inset-0 z-50">
                     <div className="absolute inset-0 bg-black/60" onClick={() => setIsOpen(false)} />
-                    <aside className={`relative w-72 max-w-[80vw] flex flex-col h-full animate-slide-in ${s.bg}`}>
+                    <aside className="relative w-72 max-w-[80vw] flex flex-col h-full animate-slide-in bg-slate-100 dark:bg-slate-900">
                         {sidebarContent}
                     </aside>
                 </div>
