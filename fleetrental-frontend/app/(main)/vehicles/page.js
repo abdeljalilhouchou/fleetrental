@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { getToken, storageUrl } from '../../../lib/api';
 import { useRouter } from 'next/navigation';
 import RoleProtector from '../../components/RoleProtector';
-import { Car, Plus, Edit2, Trash2, Search, CheckCircle2, Clock, AlertTriangle, XCircle, Repeat, AlertCircle, Eye, Camera, LayoutGrid, List } from 'lucide-react';
+import { Car, Plus, Edit2, Trash2, Search, CheckCircle2, Clock, AlertTriangle, XCircle, Repeat, AlertCircle, Eye, Camera, LayoutGrid, List, FileText, Download, Shield, Wrench, FileCheck } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -40,6 +40,32 @@ const STATUS_CONFIG = {
     },
 };
 
+const DOC_TYPES = {
+    carte_grise:        { label: 'Carte Grise',          icon: FileCheck },
+    assurance:          { label: 'Assurance',             icon: Shield },
+    controle_technique: { label: 'Contrôle Technique',   icon: Wrench },
+    vignette:           { label: 'Vignette',              icon: FileText },
+    autre:              { label: 'Autre',                 icon: FileText },
+};
+
+const EMPTY_DOC_FORM = { type: 'assurance', name: '', expiry_date: '', notes: '', file_data: '', file_name: '', mime_type: '' };
+
+const getDocStatus = (doc) => {
+    if (!doc.expiry_date) return 'valid';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const expiry = new Date(doc.expiry_date);
+    const diffDays = Math.ceil((expiry - today) / 86400000);
+    if (diffDays < 0)  return 'expired';
+    if (diffDays <= 30) return 'expiring';
+    return 'valid';
+};
+
+const DOC_STATUS_CONFIG = {
+    valid:    { label: 'Valide',          cls: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30' },
+    expiring: { label: 'Expire bientôt', cls: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30' },
+    expired:  { label: 'Expiré',         cls: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30' },
+};
+
 const EMPTY_FORM = {
     brand: '',
     model: '',
@@ -69,6 +95,13 @@ export default function VehiclesPage() {
     const [detailVehicle, setDetailVehicle] = useState(null);
     const [failedPhotos, setFailedPhotos] = useState(new Set());
     const [viewMode, setViewMode] = useState('cards');
+    // Documents
+    const [docTab, setDocTab]           = useState('info');
+    const [vehicleDocs, setVehicleDocs] = useState([]);
+    const [docsLoading, setDocsLoading] = useState(false);
+    const [showDocForm, setShowDocForm] = useState(false);
+    const [docForm, setDocForm]         = useState(EMPTY_DOC_FORM);
+    const [docSaving, setDocSaving]     = useState(false);
     const router = useRouter();
 
     const headers = () => ({
@@ -202,6 +235,76 @@ export default function VehiclesPage() {
         } catch (e) {
             setError('Erreur réseau');
         }
+    };
+
+    // Réinitialiser l'onglet documents quand on change de véhicule
+    useEffect(() => {
+        if (detailVehicle) {
+            setDocTab('info');
+            setVehicleDocs([]);
+            setShowDocForm(false);
+            setDocForm(EMPTY_DOC_FORM);
+        }
+    }, [detailVehicle?.id]);
+
+    const loadVehicleDocs = async (vehicleId) => {
+        setDocsLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/vehicles/${vehicleId}/documents`, { headers: headers() });
+            if (res.ok) setVehicleDocs(await res.json());
+        } catch (e) { console.error(e); }
+        finally { setDocsLoading(false); }
+    };
+
+    const handleDocFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { setError('Fichier trop volumineux (max 5MB)'); return; }
+        const reader = new FileReader();
+        reader.onload = (ev) => setDocForm(prev => ({ ...prev, file_data: ev.target.result, file_name: file.name, mime_type: file.type }));
+        reader.readAsDataURL(file);
+    };
+
+    const handleAddDoc = async () => {
+        if (!detailVehicle || !docForm.name) return;
+        setDocSaving(true); setError('');
+        try {
+            const res = await fetch(`${API_URL}/vehicles/${detailVehicle.id}/documents`, {
+                method: 'POST', headers: headers(), body: JSON.stringify(docForm),
+            });
+            const data = await res.json();
+            if (!res.ok) { setError(data.message || 'Erreur'); return; }
+            setVehicleDocs(prev => [...prev, data]);
+            setShowDocForm(false);
+            setDocForm(EMPTY_DOC_FORM);
+        } catch (e) { setError('Erreur réseau'); }
+        finally { setDocSaving(false); }
+    };
+
+    const handleDeleteDoc = async (docId) => {
+        if (!confirm('Supprimer ce document ?')) return;
+        try {
+            const res = await fetch(`${API_URL}/documents/${docId}`, { method: 'DELETE', headers: headers() });
+            if (res.ok) setVehicleDocs(prev => prev.filter(d => d.id !== docId));
+        } catch (e) { setError('Erreur réseau'); }
+    };
+
+    const handleDownloadDoc = async (doc) => {
+        try {
+            const res = await fetch(`${API_URL}/documents/${doc.id}/download`, { headers: headers() });
+            if (res.ok) {
+                const data = await res.json();
+                const link = document.createElement('a');
+                link.href = data.file_data;
+                link.download = data.file_name || 'document';
+                link.click();
+            }
+        } catch (e) { setError('Erreur lors du téléchargement'); }
+    };
+
+    const openDocTab = () => {
+        setDocTab('docs');
+        if (vehicleDocs.length === 0 && !docsLoading) loadVehicleDocs(detailVehicle.id);
     };
 
     const photoUrl = (v) => {
@@ -632,6 +735,20 @@ export default function VehiclesPage() {
                             </button>
                         </div>
 
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-100 dark:border-gray-800 px-6">
+                            <button onClick={() => setDocTab('info')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px ${docTab === 'info' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>
+                                Informations
+                            </button>
+                            <button onClick={openDocTab} className={`px-4 py-3 text-sm font-semibold border-b-2 transition -mb-px flex items-center gap-1.5 ${docTab === 'docs' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>
+                                <FileText size={13} /> Documents
+                                {vehicleDocs.some(d => getDocStatus(d) !== 'valid') && (
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 ml-0.5" />
+                                )}
+                            </button>
+                        </div>
+
+                        {docTab === 'info' && (<>
                         {/* Photo */}
                         <div className="p-6 pb-0">
                             {error && (
@@ -697,6 +814,127 @@ export default function VehiclesPage() {
                                 </span>
                             </div>
                         </div>
+                        </>)}
+
+                        {/* ── Onglet Documents ── */}
+                        {docTab === 'docs' && (
+                        <div className="p-6">
+                            {error && (
+                                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs rounded-lg px-3 py-2 mb-4 flex items-center gap-2">
+                                    <AlertCircle size={14} /> {error}
+                                </div>
+                            )}
+
+                            {/* Bouton ajouter */}
+                            {isAdmin && !showDocForm && (
+                                <button onClick={() => setShowDocForm(true)}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 mb-4 border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 rounded-xl hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 dark:hover:text-blue-400 transition text-sm font-medium">
+                                    <Plus size={15} /> Ajouter un document
+                                </button>
+                            )}
+
+                            {/* Formulaire ajout */}
+                            {isAdmin && showDocForm && (
+                                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4 space-y-3">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Type</label>
+                                            <select value={docForm.type} onChange={e => setDocForm({...docForm, type: e.target.value})}
+                                                className="w-full px-3 py-2 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500">
+                                                {Object.entries(DOC_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Date d&apos;expiration</label>
+                                            <input type="date" value={docForm.expiry_date} onChange={e => setDocForm({...docForm, expiry_date: e.target.value})}
+                                                className="w-full px-3 py-2 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Nom du document *</label>
+                                        <input type="text" value={docForm.name} onChange={e => setDocForm({...docForm, name: e.target.value})}
+                                            placeholder="ex: Assurance Tous Risques 2026"
+                                            className="w-full px-3 py-2 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Fichier (PDF / image, max 5MB)</label>
+                                        <input type="file" accept=".pdf,image/*" onChange={handleDocFileChange}
+                                            className="w-full text-xs text-gray-500 dark:text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-600 dark:file:bg-blue-900/30 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer" />
+                                        {docForm.file_name && <p className="text-xs text-gray-400 mt-1">📎 {docForm.file_name}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Notes</label>
+                                        <textarea value={docForm.notes} onChange={e => setDocForm({...docForm, notes: e.target.value})}
+                                            rows={2} placeholder="Notes optionnelles..."
+                                            className="w-full px-3 py-2 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-800 dark:text-gray-200 outline-none focus:border-blue-500 resize-none" />
+                                    </div>
+                                    <div className="flex gap-2 pt-1">
+                                        <button onClick={() => { setShowDocForm(false); setDocForm(EMPTY_DOC_FORM); setError(''); }}
+                                            className="flex-1 py-2 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                            Annuler
+                                        </button>
+                                        <button onClick={handleAddDoc} disabled={!docForm.name || docSaving}
+                                            className="flex-1 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+                                            {docSaving ? 'Enregistrement...' : 'Enregistrer'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Liste des documents */}
+                            {docsLoading ? (
+                                <div className="text-center py-10 text-gray-400 dark:text-gray-500 text-sm">Chargement...</div>
+                            ) : vehicleDocs.length === 0 ? (
+                                <div className="text-center py-10">
+                                    <FileText size={32} className="mx-auto text-gray-200 dark:text-gray-700 mb-2" />
+                                    <p className="text-gray-400 dark:text-gray-500 text-sm">Aucun document</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {vehicleDocs.map(doc => {
+                                        const status = doc.expiry_status || getDocStatus(doc);
+                                        const stCfg  = DOC_STATUS_CONFIG[status];
+                                        const TypeIcon = DOC_TYPES[doc.type]?.icon || FileText;
+                                        return (
+                                            <div key={doc.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                                                <div className="w-9 h-9 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                    <TypeIcon size={16} className="text-blue-600 dark:text-blue-400" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{doc.name}</div>
+                                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                        <span className="text-xs text-gray-400 dark:text-gray-500">{DOC_TYPES[doc.type]?.label || doc.type}</span>
+                                                        {doc.expiry_date && (
+                                                            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-md ${stCfg.cls}`}>
+                                                                {status === 'expired' ? 'Expiré' : new Date(doc.expiry_date).toLocaleDateString('fr-FR')}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {doc.notes && <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{doc.notes}</div>}
+                                                </div>
+                                                <div className="flex items-center gap-1 flex-shrink-0">
+                                                    {doc.file_name && (
+                                                        <button onClick={() => handleDownloadDoc(doc)}
+                                                            className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
+                                                            title="Télécharger">
+                                                            <Download size={14} />
+                                                        </button>
+                                                    )}
+                                                    {isAdmin && (
+                                                        <button onClick={() => handleDeleteDoc(doc.id)}
+                                                            className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                                                            title="Supprimer">
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                        )}
 
                         {/* Footer */}
                         <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-800">

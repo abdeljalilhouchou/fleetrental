@@ -15,6 +15,7 @@ use App\Http\Controllers\RentalFileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\VehicleDocumentController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -45,6 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Véhicules - lecture pour tous
     Route::get('/vehicles', [VehicleController::class, 'index']);
+    Route::get('/vehicles/{vehicle}/documents', [VehicleDocumentController::class, 'index']);
+    Route::get('/documents/{document}/download', [VehicleDocumentController::class, 'download']);
 
     // Maintenances - lecture pour tous
     Route::get('/maintenances', [MaintenanceController::class, 'index']);
@@ -79,6 +82,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/vehicles/{vehicle}', [VehicleController::class, 'update']);
         Route::delete('/vehicles/{vehicle}', [VehicleController::class, 'destroy']);
         Route::post('/vehicles/{vehicle}/photo', [VehicleController::class, 'uploadPhoto']);
+
+        // Documents véhicules
+        Route::post('/vehicles/{vehicle}/documents', [VehicleDocumentController::class, 'store']);
+        Route::delete('/documents/{document}', [VehicleDocumentController::class, 'destroy']);
 
         // Maintenances - modification et suppression uniquement
         Route::put('/maintenances/{maintenance}', [MaintenanceController::class, 'update']);
