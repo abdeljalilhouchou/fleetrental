@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'paths' => ['api/*'],
-    'allowed_origins' => ['http://localhost:3000', 'https://fleetrental.vercel.app'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'allowed_origins' => ['*'],
     'allowed_methods' => ['*'],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
