@@ -8,14 +8,14 @@ export function storageUrl(path) {
 }
 
 // LOGIN
-export async function login(email, password) {
+export async function login(email, password, rememberMe = false) {
     const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, remember_me: rememberMe }),
     });
 
     const data = await response.json();
@@ -24,8 +24,9 @@ export async function login(email, password) {
         throw new Error(data.message || 'Erreur de connexion');
     }
 
-    // Sauvegarder le token dans un cookie
-    document.cookie = `token=${data.token}; path=/; max-age=86400`;
+    // Durée du cookie : 30 jours si "se souvenir", sinon 24h
+    const maxAge = data.expires_in || (rememberMe ? 30 * 24 * 3600 : 24 * 3600);
+    document.cookie = `token=${data.token}; path=/; max-age=${maxAge}; SameSite=Strict`;
 
     return data;
 }

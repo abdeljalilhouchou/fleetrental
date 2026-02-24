@@ -6,11 +6,12 @@ import { login } from '../../lib/api';
 import { Car, Mail, Lock, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
-    const [email, setEmail]       = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError]       = useState('');
-    const [loading, setLoading]   = useState(false);
-    const router                  = useRouter();
+    const [email, setEmail]           = useState('');
+    const [password, setPassword]     = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
+    const [error, setError]           = useState('');
+    const [loading, setLoading]       = useState(false);
+    const router                      = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -18,7 +19,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const response = await login(email, password);
+            const response = await login(email, password, rememberMe);
             
             // L'API retourne maintenant un champ 'redirect' selon le rôle
             const redirectPath = response.redirect || '/dashboard';
@@ -87,6 +88,21 @@ export default function LoginPage() {
                                 />
                             </div>
                         </div>
+
+                        {/* Se souvenir de moi */}
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-10 h-6 rounded-full transition-colors ${rememberMe ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${rememberMe ? 'translate-x-5' : 'translate-x-1'}`} />
+                            </div>
+                            <span className="text-sm text-gray-600">Se souvenir de moi <span className="text-gray-400">(30 jours)</span></span>
+                        </label>
 
                         {/* Submit */}
                         <button

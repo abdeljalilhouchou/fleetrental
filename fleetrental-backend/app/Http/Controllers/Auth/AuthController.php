@@ -27,7 +27,10 @@ class AuthController extends Controller
             Auth::logout();
             return response()->json(['message' => 'Votre compte a été désactivé. Contactez votre administrateur.'], 403);
         }
-        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $rememberMe = $request->boolean('remember_me', false);
+        $expiresAt  = $rememberMe ? now()->addDays(30) : now()->addDay();
+        $token      = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
 
         // Détermine la redirection selon le rôle
         $redirect = match ($user->role) {
@@ -38,9 +41,10 @@ class AuthController extends Controller
         };
 
         return response()->json([
-            'token'    => $token,
-            'user'     => $user->load('company'),
-            'redirect' => $redirect,
+            'token'      => $token,
+            'user'       => $user->load('company'),
+            'redirect'   => $redirect,
+            'expires_in' => $rememberMe ? 30 * 24 * 3600 : 24 * 3600, // secondes
         ]);
     }
 
