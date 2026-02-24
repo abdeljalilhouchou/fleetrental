@@ -170,3 +170,33 @@ export async function updatePassword(data) {
         body: JSON.stringify(data),
     });
 }
+
+// ═══════════════════════════════════════════════════════════
+// ROLES & PERMISSIONS API (super_admin uniquement)
+// ═══════════════════════════════════════════════════════════
+
+export async function getRoles() {
+    return apiRequest('/roles');
+}
+
+export async function getAllPermissions() {
+    return apiRequest('/permissions');
+}
+
+export async function updateRolePermissions(roleId, permissions) {
+    return apiRequest(`/roles/${roleId}/permissions`, {
+        method: 'PUT',
+        body: JSON.stringify({ permissions }),
+    });
+}
+
+export async function getUserPermissions(userId) {
+    return apiRequest(`/users/${userId}/permissions`);
+}
+
+export async function updateUserPermissions(userId, overrides) {
+    return apiRequest(`/users/${userId}/permissions`, {
+        method: 'PUT',
+        body: JSON.stringify({ overrides }),
+    });
+}

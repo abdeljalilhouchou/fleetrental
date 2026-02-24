@@ -13,6 +13,40 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
+    // Relation vers le modèle Role via le champ 'role' (string name)
+    public function roleModel()
+    {
+        return $this->belongsTo(Role::class, 'role', 'name');
+    }
+
+    // Overrides individuels de permissions
+    public function permissionOverrides()
+    {
+        return $this->hasMany(UserPermissionOverride::class);
+    }
+
+    // Vérifie si l'utilisateur a une permission donnée
+    public function hasPermission(string $permission): bool
+    {
+        // super_admin a tout
+        if ($this->role === 'super_admin') return true;
+
+        // Vérifier d'abord un override individuel
+        $override = $this->permissionOverrides()
+            ->whereHas('permission', fn($q) => $q->where('name', $permission))
+            ->first();
+
+        if ($override !== null) {
+            return $override->granted;
+        }
+
+        // Sinon, vérifier les permissions du rôle
+        $role = $this->roleModel()->with('permissions')->first();
+        if (!$role) return false;
+
+        return $role->permissions->contains('name', $permission);
+    }
+
     protected $fillable = [
         'name',
         'email',

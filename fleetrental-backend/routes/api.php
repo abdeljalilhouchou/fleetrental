@@ -16,6 +16,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\VehicleDocumentController;
+use App\Http\Controllers\RolePermissionController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -124,6 +125,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Stats globales pour super admin
         Route::get('/super-admin/stats', [SuperAdminStatsController::class, 'index']);
+
+        // ═══════════════════════════════════════════════════════════
+        // ROLES & PERMISSIONS - Super Admin uniquement
+        // ═══════════════════════════════════════════════════════════
+        Route::get('/roles', [RolePermissionController::class, 'indexRoles']);
+        Route::get('/permissions', [RolePermissionController::class, 'indexPermissions']);
+        Route::put('/roles/{role}/permissions', [RolePermissionController::class, 'updateRolePermissions']);
+        Route::get('/users/{user}/permissions', [RolePermissionController::class, 'userPermissions']);
+        Route::put('/users/{user}/permissions', [RolePermissionController::class, 'updateUserPermissions']);
     });
     // ========================================
 // LOCATIONS (RENTALS) - Tous les rôles

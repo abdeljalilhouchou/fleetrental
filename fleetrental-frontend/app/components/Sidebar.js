@@ -10,9 +10,10 @@ import NotificationBell from './NotificationBell';
 // Navigation par rôle
 const NAV_BY_ROLE = {
     super_admin: [
-        { icon: LayoutDashboard, label: 'Dashboard',     path: '/super-admin/dashboard' },
-        { icon: Building2,      label: 'Entreprises',   path: '/companies' },
-        { icon: Users,          label: 'Utilisateurs',  path: '/users' },
+        { icon: LayoutDashboard, label: 'Dashboard',         path: '/super-admin/dashboard' },
+        { icon: Building2,       label: 'Entreprises',       path: '/companies' },
+        { icon: Users,           label: 'Utilisateurs',      path: '/super-admin/users' },
+        { icon: Shield,          label: 'Rôles & Permissions', path: '/super-admin/roles-permissions' },
     ],
     company_admin: [
         { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard' },
@@ -35,7 +36,10 @@ const NAV_BY_ROLE = {
 const ROLE_LABELS = {
     super_admin:   { badge: 'SA', color: 'bg-purple-600', label: 'Super Admin' },
     company_admin: { badge: 'CA', color: 'bg-green-600',  label: 'Admin Entreprise' },
-    employee:      { badge: 'EM', color: 'bg-blue-600',   label: 'Employé' },
+    fleet_manager: { badge: 'FM', color: 'bg-blue-600',   label: 'Fleet Manager' },
+    rental_agent:  { badge: 'RA', color: 'bg-teal-600',   label: 'Rental Agent' },
+    mechanic:      { badge: 'MC', color: 'bg-orange-600', label: 'Mécanicien' },
+    employee:      { badge: 'EM', color: 'bg-slate-600',  label: 'Employé' },
 };
 
 export default function Sidebar() {
