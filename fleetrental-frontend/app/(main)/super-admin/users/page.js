@@ -9,7 +9,7 @@ import {
 import {
     Users, Search, Shield, ChevronRight, X, Save, RotateCcw,
     Car, FileText, Wrench, DollarSign, Bell, Check, AlertCircle,
-    Building2, UserCheck, UserX, Plus, Minus
+    Building2, UserCheck, UserX, Plus, Minus, UserPlus, Eye, EyeOff
 } from 'lucide-react';
 
 // ─── Config modules ───────────────────────────────────────────────────────────
@@ -383,6 +383,109 @@ function UserPermissionsPanel({ user, onClose }) {
     );
 }
 
+// ─── Modal création utilisateur ───────────────────────────────────────────────
+function CreateUserModal({ onClose, onCreated }) {
+    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'employee', company_id: '' });
+    const [companies, setCompanies] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+    const [showPwd, setShowPwd] = useState(false);
+
+    useEffect(() => {
+        Promise.all([
+            apiRequest('/companies'),
+            getRoles(),
+        ]).then(([c, r]) => { setCompanies(c); setRoles(r); });
+    }, []);
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setError('');
+        if (!form.name || !form.email || !form.password) { setError('Nom, email et mot de passe sont requis.'); return; }
+        setSaving(true);
+        try {
+            await apiRequest('/users', { method: 'POST', body: JSON.stringify(form) });
+            onCreated();
+            onClose();
+        } catch (err) {
+            setError(err?.message || 'Erreur lors de la création.');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    const field = 'w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500';
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+                <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-2">
+                        <UserPlus size={18} className="text-purple-600" />
+                        <h2 className="font-bold text-slate-900 dark:text-white">Nouvel utilisateur</h2>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">
+                        <X size={16} className="text-slate-500" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                    {error && (
+                        <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm">
+                            <AlertCircle size={14} /> {error}
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Nom complet *</label>
+                        <input className={field} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Jean Dupont" />
+                    </div>
+                    <div>
+                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Email *</label>
+                        <input type="email" className={field} value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="jean@exemple.com" />
+                    </div>
+                    <div>
+                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Mot de passe *</label>
+                        <div className="relative">
+                            <input type={showPwd ? 'text' : 'password'} className={field + ' pr-10'} value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="Min. 8 caractères" />
+                            <button type="button" onClick={() => setShowPwd(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Rôle</label>
+                            <select className={field} value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
+                                {roles.map(r => <option key={r.name} value={r.name}>{r.display_name}</option>)}
+                                <option value="super_admin">Super Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Entreprise</label>
+                            <select className={field} value={form.company_id} onChange={e => setForm(p => ({ ...p, company_id: e.target.value }))}>
+                                <option value="">— Aucune —</option>
+                                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                            Annuler
+                        </button>
+                        <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition disabled:opacity-60">
+                            {saving ? <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" /> : <UserPlus size={14} />}
+                            Créer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 // ─── Page principale ──────────────────────────────────────────────────────────
 export default function SuperAdminUsersPage() {
     const { user: currentUser } = useData();
@@ -391,19 +494,19 @@ export default function SuperAdminUsersPage() {
     const [search, setSearch] = useState('');
     const [filterRole, setFilterRole] = useState('');
     const [selectedUser, setSelectedUser] = useState(null);
+    const [showCreate, setShowCreate] = useState(false);
 
-    useEffect(() => {
-        async function load() {
-            setLoading(true);
-            try {
-                const data = await apiRequest('/users');
-                setUsers(data);
-            } finally {
-                setLoading(false);
-            }
+    async function loadUsers() {
+        setLoading(true);
+        try {
+            const data = await apiRequest('/users');
+            setUsers(data);
+        } finally {
+            setLoading(false);
         }
-        load();
-    }, []);
+    }
+
+    useEffect(() => { loadUsers(); }, []);
 
     if (!currentUser || currentUser.role !== 'super_admin') {
         return (
@@ -428,7 +531,7 @@ export default function SuperAdminUsersPage() {
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-xl">
                     <Users size={24} className="text-purple-600 dark:text-purple-400" />
                 </div>
-                <div>
+                <div className="flex-1">
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                         Gestion des Utilisateurs
                     </h1>
@@ -436,6 +539,13 @@ export default function SuperAdminUsersPage() {
                         Modifier les informations et permissions de chaque utilisateur
                     </p>
                 </div>
+                <button
+                    onClick={() => setShowCreate(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl transition"
+                >
+                    <UserPlus size={16} />
+                    Nouvel utilisateur
+                </button>
             </div>
 
             {/* Barre de recherche + filtre */}
@@ -539,6 +649,14 @@ export default function SuperAdminUsersPage() {
                 <UserPermissionsPanel
                     user={selectedUser}
                     onClose={() => setSelectedUser(null)}
+                />
+            )}
+
+            {/* Modal création */}
+            {showCreate && (
+                <CreateUserModal
+                    onClose={() => setShowCreate(false)}
+                    onCreated={loadUsers}
                 />
             )}
         </div>
