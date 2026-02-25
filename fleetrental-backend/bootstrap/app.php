@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Prepend our CORS handler so it runs before everything else,
+        // including authentication and routing.
+        $middleware->prepend(\App\Http\Middleware\CorsMiddleware::class);
+
         $middleware->alias([
             'company.admin' => \App\Http\Middleware\CompanyAdminMiddleware::class,
         ]);
