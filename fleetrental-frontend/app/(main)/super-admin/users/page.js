@@ -9,7 +9,7 @@ import {
 import {
     Users, Search, Shield, ChevronRight, X, Save, RotateCcw,
     Car, FileText, Wrench, DollarSign, Bell, Check, AlertCircle,
-    Building2, UserCheck, UserX, Plus, Minus, UserPlus, Eye, EyeOff
+    Building2, UserCheck, UserX, Plus, Minus, UserPlus, Eye, EyeOff, KeyRound
 } from 'lucide-react';
 
 // ─── Config modules ───────────────────────────────────────────────────────────
@@ -85,6 +85,11 @@ function UserPermissionsPanel({ user, onClose }) {
     const [savingInfo, setSavingInfo] = useState(false);
     const [savedInfo, setSavedInfo] = useState(false);
     const [activeTab, setActiveTab] = useState('info');
+    const [newPassword, setNewPassword] = useState('');
+    const [showNewPwd, setShowNewPwd] = useState(false);
+    const [savingPwd, setSavingPwd] = useState(false);
+    const [savedPwd, setSavedPwd] = useState(false);
+    const [pwdError, setPwdError] = useState('');
 
     const isDirty = JSON.stringify(localStates) !== JSON.stringify(originalStates);
     const isInfoDirty = editRole !== user.role || editInfo.name !== user.name || editInfo.email !== user.email || editInfo.is_active !== user.is_active;
@@ -134,6 +139,25 @@ function UserPermissionsPanel({ user, onClose }) {
             setTimeout(() => setSaved(false), 2000);
         } finally {
             setSaving(false);
+        }
+    }
+
+    async function handleResetPassword() {
+        setPwdError('');
+        if (!newPassword || newPassword.length < 8) { setPwdError('Le mot de passe doit contenir au moins 8 caractères.'); return; }
+        setSavingPwd(true);
+        try {
+            await apiRequest(`/users/${user.id}/reset-password`, {
+                method: 'PUT',
+                body: JSON.stringify({ password: newPassword }),
+            });
+            setNewPassword('');
+            setSavedPwd(true);
+            setTimeout(() => setSavedPwd(false), 2500);
+        } catch {
+            setPwdError('Erreur lors de la réinitialisation.');
+        } finally {
+            setSavingPwd(false);
         }
     }
 
@@ -259,6 +283,46 @@ function UserPermissionsPanel({ user, onClose }) {
                                         editInfo.is_active ? 'translate-x-6' : 'translate-x-1'
                                     }`} />
                                 </button>
+                            </div>
+
+                            {/* Réinitialisation mot de passe */}
+                            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 space-y-3">
+                                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    <KeyRound size={14} className="text-slate-500" />
+                                    Réinitialiser le mot de passe
+                                </div>
+                                {pwdError && (
+                                    <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
+                                        <AlertCircle size={12} /> {pwdError}
+                                    </div>
+                                )}
+                                {savedPwd && (
+                                    <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                                        <Check size={12} /> Mot de passe modifié avec succès
+                                    </div>
+                                )}
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type={showNewPwd ? 'text' : 'password'}
+                                            value={newPassword}
+                                            onChange={e => setNewPassword(e.target.value)}
+                                            placeholder="Nouveau mot de passe (min. 8 car.)"
+                                            className="w-full pr-9 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500"
+                                        />
+                                        <button type="button" onClick={() => setShowNewPwd(v => !v)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                            {showNewPwd ? <EyeOff size={14} /> : <Eye size={14} />}
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={handleResetPassword}
+                                        disabled={savingPwd || !newPassword}
+                                        className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition disabled:opacity-50"
+                                    >
+                                        {savingPwd ? <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" /> : <KeyRound size={13} />}
+                                        Réinitialiser
+                                    </button>
+                                </div>
                             </div>
 
                             {isInfoDirty && (
