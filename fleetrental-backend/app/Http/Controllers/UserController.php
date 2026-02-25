@@ -32,9 +32,9 @@ class UserController extends Controller
         $user = $request->user();
 
         // Déterminer les rôles autorisés
-        $allowedRoles = $user->isSuperAdmin() 
-            ? ['super_admin', 'company_admin', 'employee']
-            : ['employee'];
+        $allowedRoles = $user->isSuperAdmin()
+            ? ['super_admin', 'company_admin', 'fleet_manager', 'rental_agent', 'mechanic', 'employee']
+            : ['fleet_manager', 'rental_agent', 'mechanic', 'employee'];
 
         $rules = [
             'name'       => ['required', 'string', 'max:255'],
@@ -43,9 +43,9 @@ class UserController extends Controller
             'role'       => ['required', Rule::in($allowedRoles)],
         ];
 
-        // Si super_admin, il DOIT choisir l'entreprise
+        // Si super_admin, il peut optionnellement choisir l'entreprise
         if ($user->isSuperAdmin()) {
-            $rules['company_id'] = ['required', 'exists:companies,id'];
+            $rules['company_id'] = ['nullable', 'exists:companies,id'];
         }
 
         $data = $request->validate($rules);
@@ -77,9 +77,9 @@ class UserController extends Controller
         }
 
         // Déterminer les rôles autorisés selon qui modifie
-        $allowedRoles = $currentUser->isSuperAdmin() 
-            ? ['super_admin', 'company_admin', 'employee']
-            : ['employee'];
+        $allowedRoles = $currentUser->isSuperAdmin()
+            ? ['super_admin', 'company_admin', 'fleet_manager', 'rental_agent', 'mechanic', 'employee']
+            : ['fleet_manager', 'rental_agent', 'mechanic', 'employee'];
 
         $rules = [
             'name'     => ['required', 'string', 'max:255'],
@@ -88,9 +88,9 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:6'],
         ];
 
-        // Si super_admin, permet de changer l'entreprise
+        // Si super_admin, permet de changer l'entreprise (optionnel pour les super_admins sans entreprise)
         if ($currentUser->isSuperAdmin()) {
-            $rules['company_id'] = ['required', 'exists:companies,id'];
+            $rules['company_id'] = ['nullable', 'exists:companies,id'];
         }
 
         $data = $request->validate($rules);
@@ -125,13 +125,8 @@ class UserController extends Controller
             return response()->json(['message' => 'Accès refusé'], 403);
         }
 
-        // Un company_admin ne peut réinitialiser que les employés
-        if (!$currentUser->isSuperAdmin() && $user->role !== 'employee') {
-            return response()->json(['message' => 'Accès refusé'], 403);
-        }
-
         $data = $request->validate([
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'password' => ['required', 'string', 'min:6'],
         ]);
 
         $user->password = Hash::make($data['password']);
