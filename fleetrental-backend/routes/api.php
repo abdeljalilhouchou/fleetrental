@@ -140,8 +140,10 @@ Route::middleware('auth:sanctum')->group(function () {
 // LOCATIONS (RENTALS) - Tous les rôles
 // ========================================
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/rentals/export', [RentalController::class, 'exportCsv']);
         Route::get('/rentals', [RentalController::class, 'index']);
         Route::get('/rentals/{rental}', [RentalController::class, 'show']);
+        Route::get('/rentals/{rental}/contract', [RentalController::class, 'contract']);
         Route::post('/rentals', [RentalController::class, 'store']);
         Route::post('/rentals/{rental}/complete', [RentalController::class, 'complete']);
         Route::post('/rentals/{rental}/cancel', [RentalController::class, 'cancel']);

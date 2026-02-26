@@ -34,7 +34,7 @@ class RentalController extends Controller
     public function store(Request $request)
     {
         if (!$request->user()->hasPermission('create_rentals')) {
-            return response()->json(['message' => 'Permission refus�e : create_rentals'], 403);
+            return response()->json(['message' => 'Permission refus�e : create_rentals'], 403);
         }
 
         $validated = $request->validate([
@@ -197,7 +197,7 @@ class RentalController extends Controller
     public function update(Request $request, Rental $rental)
     {
         if (!$request->user()->hasPermission('edit_rentals')) {
-            return response()->json(['message' => 'Permission refus�e : edit_rentals'], 403);
+            return response()->json(['message' => 'Permission refus�e : edit_rentals'], 403);
         }
 
         // Vérifier que la location appartient à la company
@@ -238,7 +238,7 @@ class RentalController extends Controller
     public function complete(Request $request, Rental $rental)
     {
         if (!$request->user()->hasPermission('complete_rentals')) {
-            return response()->json(['message' => 'Permission refus�e : complete_rentals'], 403);
+            return response()->json(['message' => 'Permission refus�e : complete_rentals'], 403);
         }
 
         // Vérifier que la location appartient à la company
@@ -292,7 +292,7 @@ class RentalController extends Controller
     public function cancel(Request $request, Rental $rental)
     {
         if (!$request->user()->hasPermission('cancel_rentals')) {
-            return response()->json(['message' => 'Permission refus�e : cancel_rentals'], 403);
+            return response()->json(['message' => 'Permission refus�e : cancel_rentals'], 403);
         }
 
         // Vérifier que la location appartient à la company
@@ -334,7 +334,7 @@ class RentalController extends Controller
     public function destroy(Request $request, Rental $rental)
     {
         if (!$request->user()->hasPermission('delete_rentals')) {
-            return response()->json(['message' => 'Permission refus�e : delete_rentals'], 403);
+            return response()->json(['message' => 'Permission refus�e : delete_rentals'], 403);
         }
 
         // Vérifier que la location appartient à la company
@@ -350,6 +350,110 @@ class RentalController extends Controller
         $rental->delete();
 
         return response()->json(['message' => 'Location supprimée']);
+    }
+
+    // Générer le contrat PDF d'une location
+    public function contract(Request $request, Rental $rental)
+    {
+        if (!$request->user()->hasPermission('view_rentals')) {
+            return response()->json(['message' => 'Permission refusée : view_rentals'], 403);
+        }
+
+        if ($request->user()->role !== 'super_admin' && $rental->company_id !== $request->user()->company_id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $rental->load(['vehicle', 'company']);
+
+        $pdf = app('dompdf.wrapper');
+        $pdf->loadView('pdf.rental_contract', ['rental' => $rental]);
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = 'contrat-location-' . str_pad($rental->id, 6, '0', STR_PAD_LEFT) . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    // Exporter les locations en CSV
+    public function exportCsv(Request $request)
+    {
+        if (!$request->user()->hasPermission('view_rentals')) {
+            return response()->json(['message' => 'Permission refusée : view_rentals'], 403);
+        }
+
+        $companyId = $request->user()->role === 'super_admin'
+            ? null
+            : $request->user()->company_id;
+
+        $query = Rental::with(['vehicle', 'company']);
+
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $rentals = $query->latest()->get();
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="locations-' . now()->format('Y-m-d') . '.csv"',
+            'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            'Pragma'              => 'no-cache',
+        ];
+
+        $callback = function () use ($rentals) {
+            $file = fopen('php://output', 'w');
+            // BOM UTF-8 pour Excel
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($file, [
+                'ID', 'Client', 'Téléphone', 'Email', 'CIN/Passeport',
+                'Véhicule', 'Immatriculation',
+                'Date début', 'Date fin', 'Jours',
+                'Tarif/jour (MAD)', 'Total (MAD)', 'Caution (MAD)', 'Payé (MAD)', 'Reste (MAD)',
+                'Km départ', 'Km retour',
+                'Statut', 'Créé le', 'Notes',
+            ], ';');
+
+            $statusLabels = ['ongoing' => 'En cours', 'completed' => 'Terminée', 'cancelled' => 'Annulée'];
+
+            foreach ($rentals as $r) {
+                $start     = \Carbon\Carbon::parse($r->start_date);
+                $end       = \Carbon\Carbon::parse($r->end_date);
+                $days      = $start->diffInDays($end) + 1;
+                $remaining = max(0, $r->total_price - $r->paid_amount);
+
+                fputcsv($file, [
+                    $r->id,
+                    $r->customer_name,
+                    $r->customer_phone,
+                    $r->customer_email ?? '',
+                    $r->customer_id_card ?? '',
+                    $r->vehicle ? "{$r->vehicle->brand} {$r->vehicle->model} {$r->vehicle->year}" : '',
+                    $r->vehicle?->registration_number ?? '',
+                    $start->format('d/m/Y'),
+                    $end->format('d/m/Y'),
+                    $days,
+                    number_format($r->daily_rate, 2, '.', ''),
+                    number_format($r->total_price, 2, '.', ''),
+                    number_format($r->deposit_amount, 2, '.', ''),
+                    number_format($r->paid_amount, 2, '.', ''),
+                    number_format($remaining, 2, '.', ''),
+                    $r->start_mileage ?? '',
+                    $r->end_mileage ?? '',
+                    $statusLabels[$r->status] ?? $r->status,
+                    $r->created_at->format('d/m/Y H:i'),
+                    $r->notes ?? '',
+                ], ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     // Historique des locations d'un véhicule

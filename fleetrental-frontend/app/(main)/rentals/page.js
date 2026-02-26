@@ -2,13 +2,13 @@
 
 import { useState, Fragment } from 'react';
 import { useData } from '../../context/DataContext';
-import { getToken } from '../../../lib/api';
+import { getToken, downloadRentalContract, exportRentalsCSV } from '../../../lib/api';
 import RoleProtector from '../../components/RoleProtector';
 import {
     Car, Plus, Search, User, Phone,
     CheckCircle2, XCircle, Clock,
     AlertCircle, Upload, FileText, FileImage,
-    X, Eye, ChevronRight
+    X, Eye, ChevronRight, Download
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -82,10 +82,35 @@ export default function RentalsPage() {
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
 
-    const canCreate  = hasPermission('create_rentals');
-    const canEdit    = hasPermission('edit_rentals');
+    const canCreate   = hasPermission('create_rentals');
+    const canEdit     = hasPermission('edit_rentals');
     const canComplete = hasPermission('complete_rentals');
-    const canCancel  = hasPermission('cancel_rentals');
+    const canCancel   = hasPermission('cancel_rentals');
+
+    const [pdfLoading, setPdfLoading] = useState(null);
+    const [csvLoading, setCsvLoading] = useState(false);
+
+    const handleDownloadContract = async (rental) => {
+        setPdfLoading(rental.id);
+        try {
+            await downloadRentalContract(rental.id);
+        } catch (e) {
+            setError(e.message || 'Erreur téléchargement PDF');
+        } finally {
+            setPdfLoading(null);
+        }
+    };
+
+    const handleExportCSV = async () => {
+        setCsvLoading(true);
+        try {
+            await exportRentalsCSV(filterStatus);
+        } catch (e) {
+            setError(e.message || 'Erreur export CSV');
+        } finally {
+            setCsvLoading(false);
+        }
+    };
 
     const headers = () => ({
         'Content-Type': 'application/json',
@@ -271,13 +296,24 @@ export default function RentalsPage() {
                         <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Gérez vos locations de véhicules</p>
                     </div>
                 </div>
-                {canCreate && (
-                <button onClick={handleCreate}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-purple-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center">
-                    <Plus size={18} />
-                    Nouvelle location
-                </button>
-                )}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button onClick={handleExportCSV} disabled={csvLoading}
+                        title="Exporter en CSV"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-green-600 dark:hover:text-green-400 transition text-sm font-medium disabled:opacity-50">
+                        {csvLoading
+                            ? <span className="w-4 h-4 border-2 border-gray-300 border-t-green-600 rounded-full animate-spin" />
+                            : <Download size={16} />
+                        }
+                        <span className="hidden sm:inline">Exporter CSV</span>
+                    </button>
+                    {canCreate && (
+                    <button onClick={handleCreate}
+                        className="flex-1 sm:flex-none bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-purple-600/20 hover:shadow-lg transition flex items-center gap-2 justify-center">
+                        <Plus size={18} />
+                        Nouvelle location
+                    </button>
+                    )}
+                </div>
             </div>
 
             {error && (
@@ -468,6 +504,21 @@ export default function RentalsPage() {
                                                                 <div className="text-sm text-gray-700 dark:text-gray-300">{r.notes}</div>
                                                             </div>
                                                         )}
+                                                    </div>
+
+                                                    {/* Actions de la location */}
+                                                    <div className="flex items-center gap-2 mb-4">
+                                                        <button
+                                                            onClick={() => handleDownloadContract(r)}
+                                                            disabled={pdfLoading === r.id}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition text-xs font-semibold disabled:opacity-50"
+                                                        >
+                                                            {pdfLoading === r.id
+                                                                ? <span className="w-3.5 h-3.5 border-2 border-blue-300 border-t-blue-700 rounded-full animate-spin" />
+                                                                : <FileText size={13} />
+                                                            }
+                                                            Contrat PDF
+                                                        </button>
                                                     </div>
 
                                                     {/* Fichiers joints */}

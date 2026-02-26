@@ -200,3 +200,70 @@ export async function updateUserPermissions(userId, overrides) {
         body: JSON.stringify({ overrides }),
     });
 }
+
+// ═══════════════════════════════════════════════════════════
+// LOCATIONS - PDF & CSV
+// ═══════════════════════════════════════════════════════════
+
+// Télécharger le contrat PDF d'une location
+export async function downloadRentalContract(id) {
+    const token = getToken();
+    const response = await fetch(`${API_URL}/rentals/${id}/contract`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/pdf',
+        },
+    });
+
+    if (response.status === 401) {
+        document.cookie = 'token=; path=/; max-age=0';
+        window.location.href = '/login';
+        throw new Error('Non authentifié');
+    }
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || 'Erreur lors du téléchargement du contrat');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contrat-location-${String(id).padStart(6, '0')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Exporter les locations en CSV
+export async function exportRentalsCSV(status = 'all') {
+    const token = getToken();
+    const params = status && status !== 'all' ? `?status=${status}` : '';
+    const response = await fetch(`${API_URL}/rentals/export${params}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (response.status === 401) {
+        document.cookie = 'token=; path=/; max-age=0';
+        window.location.href = '/login';
+        throw new Error('Non authentifié');
+    }
+
+    if (!response.ok) {
+        throw new Error('Erreur lors de l\'export CSV');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `locations-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
