@@ -208,6 +208,8 @@ export function DataProvider({ children }) {
                         loadUsers(),
                         loadStats(),
                     ]);
+                } else if (userData.role === 'fleet_manager') {
+                    await loadStats();
                 }
             }
 
@@ -249,6 +251,8 @@ export function DataProvider({ children }) {
                 }
                 if (user?.role === 'super_admin' || user?.role === 'company_admin') {
                     await Promise.all([loadUsers(), loadStats()]);
+                } else if (user?.role === 'fleet_manager') {
+                    await loadStats();
                 }
                 break;
             default:

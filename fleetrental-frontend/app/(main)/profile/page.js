@@ -193,7 +193,7 @@ export default function ProfilePage() {
     const roleInfo = ROLE_LABELS[user?.role] || ROLE_LABELS.employee;
 
     return (
-        <RoleProtector allowedRoles={['super_admin', 'company_admin', 'employee']}>
+        <RoleProtector allowedRoles={['super_admin', 'company_admin', 'fleet_manager', 'rental_agent', 'mechanic', 'employee']}>
         <div className="p-6 max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Mon Profil</h1>
 

@@ -13,6 +13,11 @@ class UserController extends Controller
     {
         $user = $request->user();
 
+        // Seuls company_admin et super_admin peuvent gérer les utilisateurs
+        if (!$user->isSuperAdmin() && !$user->isCompanyAdmin()) {
+            return response()->json(['message' => 'Accès refusé'], 403);
+        }
+
         if ($user->isSuperAdmin()) {
             // Super Admin voit tous les users
             $users = User::with('company')->get();

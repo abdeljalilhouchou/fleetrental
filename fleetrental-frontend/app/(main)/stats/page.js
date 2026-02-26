@@ -131,7 +131,7 @@ export default function StatsPage() {
     ];
 
     return (
-        <RoleProtector allowedRoles={['company_admin']}>
+        <RoleProtector allowedRoles={['company_admin', 'fleet_manager']}>
         <div>
             {/* Header */}
             <div className="mb-8">

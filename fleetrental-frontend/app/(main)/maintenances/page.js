@@ -219,9 +219,7 @@ export default function MaintenancesPage() {
     if (res.ok) await refreshMaintenances();
   };
 
-  const isAdmin =
-    currentUser?.role === "company_admin" ||
-    currentUser?.role === "super_admin";
+  const isAdmin = ['company_admin', 'super_admin', 'fleet_manager'].includes(currentUser?.role);
 
   const filtered = maintenances.filter((m) => {
     const vehicle = vehicles.find((v) => v.id === m.vehicle_id);
@@ -254,7 +252,7 @@ export default function MaintenancesPage() {
   }
 
   return (
-    <RoleProtector allowedRoles={['company_admin', 'employee']}>
+    <RoleProtector allowedRoles={['company_admin', 'fleet_manager', 'mechanic', 'employee']}>
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">

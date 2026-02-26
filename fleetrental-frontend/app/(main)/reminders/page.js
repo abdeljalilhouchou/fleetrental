@@ -272,9 +272,7 @@ export default function RemindersPage() {
   ).length;
   const okCount = reminders.filter((r) => r.computed_status === "ok").length;
 
-  const isAdmin =
-    currentUser?.role === "company_admin" ||
-    currentUser?.role === "super_admin";
+  const isAdmin = ['company_admin', 'super_admin', 'fleet_manager'].includes(currentUser?.role);
 
   if (loading) {
     return (
@@ -285,7 +283,7 @@ export default function RemindersPage() {
   }
 
   return (
-    <RoleProtector allowedRoles={['company_admin', 'employee']}>
+    <RoleProtector allowedRoles={['company_admin', 'fleet_manager', 'mechanic', 'employee']}>
     <div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

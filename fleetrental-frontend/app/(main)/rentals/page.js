@@ -82,7 +82,8 @@ export default function RentalsPage() {
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
 
-    const isAdmin = currentUser?.role === 'company_admin' || currentUser?.role === 'super_admin';
+    const isAdmin = ['company_admin', 'super_admin'].includes(currentUser?.role);
+    const canCreateRental = ['company_admin', 'super_admin', 'rental_agent', 'employee'].includes(currentUser?.role);
 
     const headers = () => ({
         'Content-Type': 'application/json',
@@ -256,7 +257,7 @@ export default function RentalsPage() {
     }
 
     return (
-        <RoleProtector allowedRoles={['company_admin', 'employee']}>
+        <RoleProtector allowedRoles={['company_admin', 'fleet_manager', 'rental_agent', 'employee']}>
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-3">
@@ -268,11 +269,13 @@ export default function RentalsPage() {
                         <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Gérez vos locations de véhicules</p>
                     </div>
                 </div>
+                {canCreateRental && (
                 <button onClick={handleCreate}
                     className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-purple-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center">
                     <Plus size={18} />
                     Nouvelle location
                 </button>
+                )}
             </div>
 
             {error && (

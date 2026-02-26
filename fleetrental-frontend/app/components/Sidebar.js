@@ -25,6 +25,24 @@ const NAV_BY_ROLE = {
         { icon: BarChart2,       label: 'Statistiques', path: '/stats' },
         { icon: Users,           label: 'Utilisateurs', path: '/users' },
     ],
+    fleet_manager: [
+        { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard' },
+        { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
+        { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },
+        { icon: Bell,            label: 'Rappels',      path: '/reminders' },
+        { icon: FileText,        label: 'Locations',    path: '/rentals' },
+        { icon: Wallet,          label: 'Finances',     path: '/finances' },
+        { icon: BarChart2,       label: 'Statistiques', path: '/stats' },
+    ],
+    rental_agent: [
+        { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
+        { icon: FileText,        label: 'Locations',    path: '/rentals' },
+    ],
+    mechanic: [
+        { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
+        { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },
+        { icon: Bell,            label: 'Rappels',      path: '/reminders' },
+    ],
     employee: [
         { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
         { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },

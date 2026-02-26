@@ -316,7 +316,7 @@ export default function VehiclesPage() {
     };
     const onPhotoError = (id) => setFailedPhotos(prev => new Set(prev).add(id));
 
-    const isAdmin = currentUser?.role === 'company_admin' || currentUser?.role === 'super_admin';
+    const isAdmin = ['company_admin', 'super_admin', 'fleet_manager'].includes(currentUser?.role);
 
     const filtered = vehicles.filter(v => {
         const matchesSearch = `${v.brand} ${v.model} ${v.registration_number}`.toLowerCase().includes(search.toLowerCase());
@@ -336,7 +336,7 @@ export default function VehiclesPage() {
     }
 
     return (
-        <RoleProtector allowedRoles={['company_admin', 'employee']}>
+        <RoleProtector allowedRoles={['company_admin', 'fleet_manager', 'rental_agent', 'mechanic', 'employee']}>
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-3">

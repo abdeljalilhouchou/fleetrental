@@ -35,7 +35,7 @@ export default function DashboardPage() {
     ];
 
     return (
-        <RoleProtector allowedRoles={['company_admin']}>
+        <RoleProtector allowedRoles={['company_admin', 'fleet_manager']}>
         <div>
             {/* Header */}
             <div className="mb-8">

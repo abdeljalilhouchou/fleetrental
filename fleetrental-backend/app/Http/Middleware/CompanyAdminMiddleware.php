@@ -12,7 +12,13 @@ class CompanyAdminMiddleware
     {
         $user = $request->user();
 
-        if (!$user->isCompanyAdmin() && !$user->isSuperAdmin()) {
+        // Super admin : accès total
+        if ($user->isSuperAdmin()) {
+            return $next($request);
+        }
+
+        // L'utilisateur doit appartenir à une entreprise
+        if (!$user->company_id) {
             return response()->json(['message' => 'Accès refusé'], 403);
         }
 
