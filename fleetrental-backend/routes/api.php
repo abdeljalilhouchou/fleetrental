@@ -17,6 +17,19 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\VehicleDocumentController;
 use App\Http\Controllers\RolePermissionController;
+use App\Http\Controllers\PublicController;
+use App\Http\Controllers\ReservationController;
+
+// ═══════════════════════════════════════════════════════════
+// ROUTES PUBLIQUES — Application mobile cliente (sans auth)
+// ═══════════════════════════════════════════════════════════
+Route::prefix('public')->group(function () {
+    Route::get('/companies', [PublicController::class, 'companies']);
+    Route::get('/companies/{company}/vehicles', [PublicController::class, 'companyVehicles']);
+    Route::get('/vehicles/{vehicle}', [PublicController::class, 'vehicleDetail']);
+    Route::post('/reservations', [PublicController::class, 'createReservation']);
+    Route::get('/reservations/{reference}', [PublicController::class, 'trackReservation']);
+});
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -113,6 +126,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword']);
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive']);
     });
+
+    // ═══════════════════════════════════════════════════════════
+    // RÉSERVATIONS CLIENTS — Accessibles à tous les rôles authentifiés
+    // ═══════════════════════════════════════════════════════════
+    Route::get('/reservations', [ReservationController::class, 'index']);
+    Route::get('/reservations/{reservation}', [ReservationController::class, 'show']);
+    Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm']);
+    Route::post('/reservations/{reservation}/reject', [ReservationController::class, 'reject']);
+    Route::post('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel']);
 
     // ═══════════════════════════════════════════════════════════
     // ROUTES SUPER_ADMIN UNIQUEMENT
