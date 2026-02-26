@@ -87,9 +87,9 @@ export default function RemindersPage() {
   const {
     reminders,
     vehicles,
-    user: currentUser,
     loading,
     refreshReminders,
+    hasPermission,
   } = useData();
 
   // Modal créer/modifier
@@ -272,7 +272,7 @@ export default function RemindersPage() {
   ).length;
   const okCount = reminders.filter((r) => r.computed_status === "ok").length;
 
-  const isAdmin = ['company_admin', 'super_admin', 'fleet_manager'].includes(currentUser?.role);
+  const canManage = hasPermission('manage_reminders');
 
   if (loading) {
     return (
@@ -295,7 +295,7 @@ export default function RemindersPage() {
             {reminders.length} rappel(s) actif(s)
           </p>
         </div>
-        {isAdmin && (
+        {canManage && (
           <button
             onClick={handleCreate}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center"
@@ -509,7 +509,7 @@ export default function RemindersPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
                         {/* Renouveler - SEULEMENT ADMINS */}
-                        {isAdmin && canRenew && (
+                        {canManage && canRenew && (
                           <button
                             onClick={() => openRenewModal(r)}
                             className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition"
@@ -520,7 +520,7 @@ export default function RemindersPage() {
                         )}
 
                         {/* Modifier - SEULEMENT ADMINS */}
-                        {isAdmin && (
+                        {canManage && (
                           <button
                             onClick={() => handleEdit(r)}
                             className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition"
@@ -531,7 +531,7 @@ export default function RemindersPage() {
                         )}
 
                         {/* Supprimer - SEULEMENT ADMINS */}
-                        {isAdmin && (
+                        {canManage && (
                           <button
                             onClick={() => handleDelete(r.id)}
                             className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition"
@@ -551,7 +551,7 @@ export default function RemindersPage() {
       </div>
 
       {/* ── Modal Créer / Modifier - SEULEMENT ADMINS ── */}
-      {showModal && isAdmin && (
+      {showModal && canManage && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
@@ -734,7 +734,7 @@ export default function RemindersPage() {
       )}
 
       {/* ── Modal Renouveler - SEULEMENT ADMINS ── */}
-      {showRenewModal && renewingReminder && isAdmin && (
+      {showRenewModal && renewingReminder && canManage && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md">
             <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">

@@ -67,7 +67,7 @@ const EMPTY_FORM = {
 };
 
 export default function RentalsPage() {
-    const { vehicles, rentals, refreshVehicles, refreshRentals, loading, user: currentUser } = useData();
+    const { vehicles, rentals, refreshVehicles, refreshRentals, loading, hasPermission } = useData();
 
     const [showModal, setShowModal] = useState(false);
     const [showCompleteModal, setShowCompleteModal] = useState(false);
@@ -82,8 +82,10 @@ export default function RentalsPage() {
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
 
-    const isAdmin = ['company_admin', 'super_admin'].includes(currentUser?.role);
-    const canCreateRental = ['company_admin', 'super_admin', 'rental_agent', 'employee'].includes(currentUser?.role);
+    const canCreate  = hasPermission('create_rentals');
+    const canEdit    = hasPermission('edit_rentals');
+    const canComplete = hasPermission('complete_rentals');
+    const canCancel  = hasPermission('cancel_rentals');
 
     const headers = () => ({
         'Content-Type': 'application/json',
@@ -269,7 +271,7 @@ export default function RentalsPage() {
                         <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Gérez vos locations de véhicules</p>
                     </div>
                 </div>
-                {canCreateRental && (
+                {canCreate && (
                 <button onClick={handleCreate}
                     className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-purple-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center">
                     <Plus size={18} />
@@ -402,19 +404,19 @@ export default function RentalsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1">
-                                                {r.status === 'ongoing' && (
-                                                    <>
-                                                        <button onClick={() => openCompleteModal(r)}
-                                                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition"
-                                                            title="Terminer">
-                                                            <CheckCircle2 size={16} />
-                                                        </button>
-                                                        <button onClick={() => handleCancel(r.id)}
-                                                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition"
-                                                            title="Annuler">
-                                                            <XCircle size={16} />
-                                                        </button>
-                                                    </>
+                                                {r.status === 'ongoing' && canComplete && (
+                                                    <button onClick={() => openCompleteModal(r)}
+                                                        className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition"
+                                                        title="Terminer">
+                                                        <CheckCircle2 size={16} />
+                                                    </button>
+                                                )}
+                                                {r.status === 'ongoing' && canCancel && (
+                                                    <button onClick={() => handleCancel(r.id)}
+                                                        className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition"
+                                                        title="Annuler">
+                                                        <XCircle size={16} />
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
@@ -485,7 +487,7 @@ export default function RentalsPage() {
                                                                             className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded">
                                                                             <Eye size={14} />
                                                                         </a>
-                                                                        {isAdmin && (
+                                                                        {canEdit && (
                                                                             <button onClick={() => handleDeleteFile(r.id, file.id)}
                                                                                 className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded">
                                                                                 <X size={14} />

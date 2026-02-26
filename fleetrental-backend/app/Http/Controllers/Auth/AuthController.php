@@ -48,6 +48,23 @@ class AuthController extends Controller
         ]);
     }
 
+    public function myPermissions(Request $request)
+    {
+        $user = $request->user();
+
+        // super_admin a toutes les permissions
+        if ($user->isSuperAdmin()) {
+            $all = \App\Models\Permission::pluck('name');
+            return response()->json($all);
+        }
+
+        // Récupérer toutes les permissions et filtrer celles accordées
+        $all = \App\Models\Permission::pluck('name');
+        $granted = $all->filter(fn($name) => $user->hasPermission($name))->values();
+
+        return response()->json($granted);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

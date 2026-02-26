@@ -10,6 +10,7 @@ const DataContext = createContext();
 
 export function DataProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [permissions, setPermissions] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [maintenances, setMaintenances] = useState([]);
     const [reminders, setReminders] = useState([]);
@@ -42,6 +43,20 @@ export function DataProvider({ children }) {
         'Accept': 'application/json',
         'Authorization': `Bearer ${getToken()}`,
     });
+
+    const loadMyPermissions = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_URL}/me/permissions`, { headers: headers() });
+            if (res.ok) {
+                const data = await res.json();
+                setPermissions(data);
+                return data;
+            }
+        } catch (e) {
+            console.error('Error loading permissions:', e);
+        }
+        return [];
+    }, []);
 
     const loadUser = useCallback(async () => {
         try {
@@ -187,6 +202,9 @@ export function DataProvider({ children }) {
             const userData = await loadUser();
 
             if (userData) {
+                // Charger les permissions effectives de l'utilisateur
+                await loadMyPermissions();
+
                 // Charger les données communes
                 await Promise.all([
                     loadVehicles(),
@@ -217,7 +235,7 @@ export function DataProvider({ children }) {
         };
 
         initData();
-    }, [router, loadUser, loadVehicles, loadMaintenances, loadReminders, loadRentals, loadCompanies, loadUsers, loadStats, loadSuperAdminStats]);
+    }, [router, loadUser, loadMyPermissions, loadVehicles, loadMaintenances, loadReminders, loadRentals, loadCompanies, loadUsers, loadStats, loadSuperAdminStats]);
 
     const refresh = useCallback(async (resource) => {
         switch (resource) {
@@ -258,10 +276,17 @@ export function DataProvider({ children }) {
             default:
                 console.warn(`Unknown resource: ${resource}`);
         }
-    }, [user, loadUser, loadVehicles, loadMaintenances, loadReminders, loadRentals, loadCompanies, loadUsers, loadStats, loadSuperAdminStats]);
+    }, [user, loadUser, loadMyPermissions, loadVehicles, loadMaintenances, loadReminders, loadRentals, loadCompanies, loadUsers, loadStats, loadSuperAdminStats]);
+
+    // Vérifie si l'utilisateur connecté a une permission donnée
+    const hasPermission = useCallback((name) => {
+        if (user?.role === 'super_admin') return true;
+        return permissions.includes(name);
+    }, [user, permissions]);
 
     const value = {
         user,
+        hasPermission,
         theme,
         setTheme,
         vehicles,

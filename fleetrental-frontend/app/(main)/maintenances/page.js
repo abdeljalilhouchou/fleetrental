@@ -70,10 +70,10 @@ export default function MaintenancesPage() {
   const {
     maintenances,
     vehicles,
-    user: currentUser,
     loading,
     refreshMaintenances,
     refreshVehicles,
+    hasPermission,
   } = useData();
 
   const [showModal, setShowModal] = useState(false);
@@ -219,7 +219,10 @@ export default function MaintenancesPage() {
     if (res.ok) await refreshMaintenances();
   };
 
-  const isAdmin = ['company_admin', 'super_admin', 'fleet_manager'].includes(currentUser?.role);
+  const canCreate   = hasPermission('create_maintenances');
+  const canEdit     = hasPermission('edit_maintenances');
+  const canDelete   = hasPermission('delete_maintenances');
+  const canComplete = hasPermission('complete_maintenances');
 
   const filtered = maintenances.filter((m) => {
     const vehicle = vehicles.find((v) => v.id === m.vehicle_id);
@@ -266,13 +269,15 @@ export default function MaintenancesPage() {
             </p>
           </div>
         </div>
-        <button
-          onClick={handleCreate}
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-green-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center"
-        >
-          <Plus size={18} />
-          Nouvelle maintenance
-        </button>
+        {canCreate && (
+          <button
+            onClick={handleCreate}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-green-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center"
+          >
+            <Plus size={18} />
+            Nouvelle maintenance
+          </button>
+        )}
       </div>
 
       {error && (
@@ -432,7 +437,7 @@ export default function MaintenancesPage() {
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-1">
-                          {m.status === "in_progress" && (
+                          {m.status === "in_progress" && canComplete && (
                             <button
                               onClick={() => handleComplete(m.id)}
                               className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition"
@@ -441,7 +446,7 @@ export default function MaintenancesPage() {
                               <CheckCircle2 size={16} />
                             </button>
                           )}
-                          {isAdmin && (
+                          {canEdit && (
                             <button
                               onClick={() => handleEdit(m)}
                               className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition"
@@ -450,7 +455,7 @@ export default function MaintenancesPage() {
                               <Edit2 size={16} />
                             </button>
                           )}
-                          {isAdmin && (
+                          {canDelete && (
                             <button
                               onClick={() => handleDelete(m.id)}
                               className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition"
@@ -506,7 +511,7 @@ export default function MaintenancesPage() {
                                       >
                                         <Eye size={14} />
                                       </a>
-                                      {isAdmin && (
+                                      {canEdit && (
                                         <button
                                           onClick={() =>
                                             handleDeleteFile(m.id, file.id)

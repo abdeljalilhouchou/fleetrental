@@ -81,7 +81,7 @@ const EMPTY_FORM = {
 };
 
 export default function VehiclesPage() {
-    const { vehicles, user: currentUser, loading, refreshVehicles } = useData();
+    const { vehicles, user: currentUser, loading, refreshVehicles, hasPermission } = useData();
 
     const [showModal, setShowModal] = useState(false);
     const [showStatusModal, setShowStatusModal] = useState(false);
@@ -316,7 +316,10 @@ export default function VehiclesPage() {
     };
     const onPhotoError = (id) => setFailedPhotos(prev => new Set(prev).add(id));
 
-    const isAdmin = ['company_admin', 'super_admin', 'fleet_manager'].includes(currentUser?.role);
+    const canCreate = hasPermission('create_vehicles');
+    const canEdit   = hasPermission('edit_vehicles');
+    const canDelete = hasPermission('delete_vehicles');
+    const canDocs   = hasPermission('manage_vehicle_documents');
 
     const filtered = vehicles.filter(v => {
         const matchesSearch = `${v.brand} ${v.model} ${v.registration_number}`.toLowerCase().includes(search.toLowerCase());
@@ -348,7 +351,7 @@ export default function VehiclesPage() {
                         <p className="text-gray-400 dark:text-gray-500 text-sm mt-0.5">Gérez votre flotte</p>
                     </div>
                 </div>
-                {isAdmin && (
+                {canCreate && (
                     <button onClick={handleCreate}
                         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/20 hover:shadow-lg transition flex items-center gap-2 w-full sm:w-auto justify-center">
                         <Plus size={18} />
@@ -469,13 +472,13 @@ export default function VehiclesPage() {
                                         title="Changer le statut">
                                         <Repeat size={14} /> Statut
                                     </button>
-                                    {isAdmin && (
+                                    {canEdit && (
                                         <button onClick={() => handleEdit(v)}
                                             className="p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition">
                                             <Edit2 size={14} />
                                         </button>
                                     )}
-                                    {isAdmin && (
+                                    {canDelete && (
                                         <button onClick={() => handleDelete(v.id)}
                                             className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
                                             <Trash2 size={14} />
@@ -544,13 +547,13 @@ export default function VehiclesPage() {
                                                     title="Changer le statut">
                                                     <Repeat size={16} />
                                                 </button>
-                                                {isAdmin && (
+                                                {canEdit && (
                                                     <button onClick={() => handleEdit(v)}
                                                         className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition">
                                                         <Edit2 size={16} />
                                                     </button>
                                                 )}
-                                                {isAdmin && (
+                                                {canDelete && (
                                                     <button onClick={() => handleDelete(v.id)}
                                                         className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition">
                                                         <Trash2 size={16} />
@@ -617,7 +620,7 @@ export default function VehiclesPage() {
                 </div>
             )}
 
-            {showModal && isAdmin && (
+            {showModal && (canCreate || canEdit) && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
                     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg border border-transparent dark:border-gray-800">
                         <div className="p-6 border-b border-gray-100 dark:border-gray-800">
@@ -765,7 +768,7 @@ export default function VehiclesPage() {
                                         <span className="text-xs">Aucune photo</span>
                                     </div>
                                 )}
-                                {isAdmin && (
+                                {canEdit && (
                                     <label className="absolute bottom-3 right-3 bg-white dark:bg-gray-800 bg-opacity-90 hover:bg-opacity-100 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm cursor-pointer flex items-center gap-1.5 transition hover:shadow-md">
                                         <Camera size={14} />
                                         {photoUrl(detailVehicle) ? 'Changer' : 'Ajouter photo'}
@@ -826,7 +829,7 @@ export default function VehiclesPage() {
                             )}
 
                             {/* Bouton ajouter */}
-                            {isAdmin && !showDocForm && (
+                            {canDocs && !showDocForm && (
                                 <button onClick={() => setShowDocForm(true)}
                                     className="w-full flex items-center justify-center gap-2 py-2.5 mb-4 border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 rounded-xl hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-500 dark:hover:text-blue-400 transition text-sm font-medium">
                                     <Plus size={15} /> Ajouter un document
@@ -834,7 +837,7 @@ export default function VehiclesPage() {
                             )}
 
                             {/* Formulaire ajout */}
-                            {isAdmin && showDocForm && (
+                            {canDocs && showDocForm && (
                                 <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4 space-y-3">
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
@@ -920,7 +923,7 @@ export default function VehiclesPage() {
                                                             <Download size={14} />
                                                         </button>
                                                     )}
-                                                    {isAdmin && (
+                                                    {canDocs && (
                                                         <button onClick={() => handleDeleteDoc(doc.id)}
                                                             className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
                                                             title="Supprimer">
@@ -938,7 +941,7 @@ export default function VehiclesPage() {
 
                         {/* Footer */}
                         <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-800">
-                            {isAdmin && (
+                            {canEdit && (
                                 <button onClick={() => { setDetailVehicle(null); handleEdit(detailVehicle); }}
                                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
                                     <Edit2 size={16} /> Modifier
