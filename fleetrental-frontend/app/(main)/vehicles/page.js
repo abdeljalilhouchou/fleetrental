@@ -339,7 +339,7 @@ export default function VehiclesPage() {
     }
 
     return (
-        <RoleProtector allowedRoles={['company_admin', 'fleet_manager', 'rental_agent', 'mechanic', 'employee']}>
+        <RoleProtector allowedRoles={['company_admin', 'fleet_manager', 'rental_agent', 'mechanic', 'employee']} requiredPermission="view_vehicles">
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-3">

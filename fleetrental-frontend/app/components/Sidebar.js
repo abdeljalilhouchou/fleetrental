@@ -7,47 +7,47 @@ import { useData } from '../context/DataContext';
 import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
-// Navigation par rôle
+// Navigation par rôle (permission = view_* permission requise pour afficher le lien)
 const NAV_BY_ROLE = {
     super_admin: [
-        { icon: LayoutDashboard, label: 'Dashboard',         path: '/super-admin/dashboard' },
-        { icon: Building2,       label: 'Entreprises',       path: '/companies' },
-        { icon: Users,           label: 'Utilisateurs',      path: '/super-admin/users' },
+        { icon: LayoutDashboard, label: 'Dashboard',           path: '/super-admin/dashboard' },
+        { icon: Building2,       label: 'Entreprises',         path: '/companies' },
+        { icon: Users,           label: 'Utilisateurs',        path: '/super-admin/users' },
         { icon: Shield,          label: 'Rôles & Permissions', path: '/super-admin/roles-permissions' },
     ],
     company_admin: [
         { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard' },
-        { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
-        { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },
-        { icon: Bell,            label: 'Rappels',      path: '/reminders' },
-        { icon: FileText,        label: 'Locations',    path: '/rentals' },
-        { icon: Wallet,          label: 'Finances',     path: '/finances' },
+        { icon: Car,             label: 'Véhicules',    path: '/vehicles',     permission: 'view_vehicles' },
+        { icon: Wrench,          label: 'Maintenances', path: '/maintenances', permission: 'view_maintenances' },
+        { icon: Bell,            label: 'Rappels',      path: '/reminders',    permission: 'view_reminders' },
+        { icon: FileText,        label: 'Locations',    path: '/rentals',      permission: 'view_rentals' },
+        { icon: Wallet,          label: 'Finances',     path: '/finances',     permission: 'view_finances' },
         { icon: BarChart2,       label: 'Statistiques', path: '/stats' },
-        { icon: Users,           label: 'Utilisateurs', path: '/users' },
+        { icon: Users,           label: 'Utilisateurs', path: '/users',        permission: 'view_users' },
     ],
     fleet_manager: [
         { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard' },
-        { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
-        { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },
-        { icon: Bell,            label: 'Rappels',      path: '/reminders' },
-        { icon: FileText,        label: 'Locations',    path: '/rentals' },
-        { icon: Wallet,          label: 'Finances',     path: '/finances' },
+        { icon: Car,             label: 'Véhicules',    path: '/vehicles',     permission: 'view_vehicles' },
+        { icon: Wrench,          label: 'Maintenances', path: '/maintenances', permission: 'view_maintenances' },
+        { icon: Bell,            label: 'Rappels',      path: '/reminders',    permission: 'view_reminders' },
+        { icon: FileText,        label: 'Locations',    path: '/rentals',      permission: 'view_rentals' },
+        { icon: Wallet,          label: 'Finances',     path: '/finances',     permission: 'view_finances' },
         { icon: BarChart2,       label: 'Statistiques', path: '/stats' },
     ],
     rental_agent: [
-        { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
-        { icon: FileText,        label: 'Locations',    path: '/rentals' },
+        { icon: Car,             label: 'Véhicules',    path: '/vehicles',  permission: 'view_vehicles' },
+        { icon: FileText,        label: 'Locations',    path: '/rentals',   permission: 'view_rentals' },
     ],
     mechanic: [
-        { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
-        { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },
-        { icon: Bell,            label: 'Rappels',      path: '/reminders' },
+        { icon: Car,             label: 'Véhicules',    path: '/vehicles',     permission: 'view_vehicles' },
+        { icon: Wrench,          label: 'Maintenances', path: '/maintenances', permission: 'view_maintenances' },
+        { icon: Bell,            label: 'Rappels',      path: '/reminders',    permission: 'view_reminders' },
     ],
     employee: [
-        { icon: Car,             label: 'Véhicules',    path: '/vehicles' },
-        { icon: Wrench,          label: 'Maintenances', path: '/maintenances' },
-        { icon: Bell,            label: 'Rappels',      path: '/reminders' },
-        { icon: FileText,        label: 'Locations',    path: '/rentals' },
+        { icon: Car,             label: 'Véhicules',    path: '/vehicles',     permission: 'view_vehicles' },
+        { icon: Wrench,          label: 'Maintenances', path: '/maintenances', permission: 'view_maintenances' },
+        { icon: Bell,            label: 'Rappels',      path: '/reminders',    permission: 'view_reminders' },
+        { icon: FileText,        label: 'Locations',    path: '/rentals',      permission: 'view_rentals' },
     ],
 };
 
@@ -63,11 +63,13 @@ const ROLE_LABELS = {
 export default function Sidebar() {
     const router   = useRouter();
     const pathname = usePathname();
-    const { user, reminders, loading } = useData();
+    const { user, reminders, loading, hasPermission } = useData();
     const [isOpen, setIsOpen] = useState(false);
 
     const role = user?.role || 'employee';
-    const navItems = NAV_BY_ROLE[role] || NAV_BY_ROLE.employee;
+    const allNavItems = NAV_BY_ROLE[role] || NAV_BY_ROLE.employee;
+    // Filtrer selon les permissions view_* (super_admin voit tout via hasPermission)
+    const navItems = allNavItems.filter(item => !item.permission || hasPermission(item.permission));
     const roleInfo = ROLE_LABELS[role];
 
     // Calculer les rappels en retard (utilise computed_status du backend)

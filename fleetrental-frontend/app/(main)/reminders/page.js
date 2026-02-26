@@ -283,7 +283,7 @@ export default function RemindersPage() {
   }
 
   return (
-    <RoleProtector allowedRoles={['company_admin', 'fleet_manager', 'mechanic', 'employee']}>
+    <RoleProtector allowedRoles={['company_admin', 'fleet_manager', 'mechanic', 'employee']} requiredPermission="view_reminders">
     <div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

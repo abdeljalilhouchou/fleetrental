@@ -5,58 +5,43 @@ import { useRouter } from 'next/navigation';
 import { useData } from '../context/DataContext';
 
 /**
- * RoleProtector - Composant pour protéger les pages selon le rôle
- * Utilise les données du DataContext pour éviter les rechargements
+ * RoleProtector - Composant pour protéger les pages selon le rôle ET les permissions
  *
- * @param {array} allowedRoles - Rôles autorisés à voir cette page
- * @param {string} redirectTo - Où rediriger si l'accès est refusé (optionnel)
- * @param {ReactNode} children - Contenu de la page
+ * @param {array}  allowedRoles       - Rôles autorisés à voir cette page
+ * @param {string} requiredPermission - Permission view_* requise (optionnel)
+ * @param {string} redirectTo         - Où rediriger si l'accès est refusé (optionnel)
+ * @param {ReactNode} children        - Contenu de la page
  */
-export default function RoleProtector({ allowedRoles, redirectTo = null, children }) {
-    const { user, loading } = useData();
+export default function RoleProtector({ allowedRoles, requiredPermission, redirectTo = null, children }) {
+    const { user, loading, hasPermission } = useData();
     const router = useRouter();
 
-    useEffect(() => {
-        // Attendre que le chargement soit terminé
-        if (loading) return;
+    const getDefaultRedirect = (role) => ({
+        super_admin:   '/super-admin/dashboard',
+        company_admin: '/dashboard',
+    }[role] || '/dashboard');
 
-        // Si pas d'utilisateur, le DataContext redirige déjà vers login
+    useEffect(() => {
+        if (loading) return;
         if (!user) return;
 
-        // Vérifier si le rôle est autorisé
+        // Vérifier le rôle
         if (!allowedRoles.includes(user.role)) {
-            // Rediriger selon le rôle si pas d'accès
-            if (redirectTo) {
-                router.push(redirectTo);
-            } else {
-                // Redirection par défaut selon le rôle
-                const defaultRedirect = {
-                    super_admin: '/super-admin/dashboard',
-                    company_admin: '/dashboard',
-                    employee: '/vehicles',
-                }[user.role] || '/dashboard';
-
-                router.push(defaultRedirect);
-            }
+            router.push(redirectTo || getDefaultRedirect(user.role));
+            return;
         }
-    }, [user, loading, allowedRoles, redirectTo, router]);
 
-    // Pendant le chargement initial (première visite), ne rien afficher
-    // Le DataContext gère déjà l'affichage de chargement global
-    if (loading) {
-        return null;
-    }
+        // Vérifier la permission de vue (si spécifiée)
+        if (requiredPermission && !hasPermission(requiredPermission)) {
+            router.push(redirectTo || getDefaultRedirect(user.role));
+        }
+    }, [user, loading, hasPermission, allowedRoles, requiredPermission, redirectTo, router]);
 
-    // Si pas d'utilisateur, ne rien afficher (redirection en cours par DataContext)
-    if (!user) {
-        return null;
-    }
+    if (loading || !user) return null;
 
-    // Si l'utilisateur n'a pas le bon rôle, ne rien afficher (redirection en cours)
-    if (!allowedRoles.includes(user.role)) {
-        return null;
-    }
+    if (!allowedRoles.includes(user.role)) return null;
 
-    // L'utilisateur a le bon rôle, on affiche le contenu
+    if (requiredPermission && !hasPermission(requiredPermission)) return null;
+
     return <>{children}</>;
 }

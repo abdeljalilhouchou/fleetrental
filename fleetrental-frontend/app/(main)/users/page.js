@@ -174,7 +174,7 @@ export default function UsersPage() {
     const employeeCount = users.filter(u => u.role === 'employee').length;
 
     return (
-        <RoleProtector allowedRoles={['super_admin', 'company_admin']}>
+        <RoleProtector allowedRoles={['super_admin', 'company_admin']} requiredPermission="view_users">
         <div>
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

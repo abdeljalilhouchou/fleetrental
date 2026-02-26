@@ -132,7 +132,7 @@ export default function FinancesPage() {
     }
 
     return (
-        <RoleProtector allowedRoles={['company_admin', 'fleet_manager']}>
+        <RoleProtector allowedRoles={['company_admin', 'fleet_manager']} requiredPermission="view_finances">
             <div>
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
