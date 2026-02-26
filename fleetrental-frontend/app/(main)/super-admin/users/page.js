@@ -31,6 +31,15 @@ const ROLE_COLORS = {
     employee:      'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
 };
 
+const ROLE_LABELS = {
+    super_admin:   'Super Admin',
+    company_admin: 'Company Admin',
+    fleet_manager: 'Fleet Manager',
+    rental_agent:  'Rental Agent',
+    mechanic:      'Mécanicien',
+    employee:      'Employé',
+};
+
 const STATE_CONFIG = {
     granted:          { label: 'Accordé',        icon: Plus,  color: 'text-green-600 dark:text-green-400',  bg: 'bg-green-100 dark:bg-green-900/30' },
     revoked:          { label: 'Révoqué',         icon: Minus, color: 'text-red-600 dark:text-red-400',     bg: 'bg-red-100 dark:bg-red-900/30' },
@@ -194,7 +203,7 @@ function UserPermissionsPanel({ user, onClose }) {
                             <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_COLORS[user.role]}`}>
-                            {user.role}
+                            {ROLE_LABELS[user.role] || user.role}
                         </span>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">
@@ -629,7 +638,7 @@ export default function SuperAdminUsersPage() {
                     className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm focus:outline-none focus:border-blue-500"
                 >
                     <option value="">Tous les rôles</option>
-                    {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                    {roles.map(r => <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>)}
                 </select>
             </div>
 
@@ -666,7 +675,7 @@ export default function SuperAdminUsersPage() {
                                     </td>
                                     <td className="px-5 py-3">
                                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_COLORS[u.role] || ROLE_COLORS.employee}`}>
-                                            {u.role}
+                                            {ROLE_LABELS[u.role] || u.role}
                                         </span>
                                     </td>
                                     <td className="px-5 py-3">
