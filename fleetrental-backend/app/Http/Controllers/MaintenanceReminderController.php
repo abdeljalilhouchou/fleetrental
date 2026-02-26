@@ -43,6 +43,10 @@ class MaintenanceReminderController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('manage_reminders')) {
+            return response()->json(['message' => 'Permission refusÈe : manage_reminders'], 403);
+        }
+
         $data = $request->validate([
             'vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
             'type' => ['required', 'string'],
@@ -58,6 +62,10 @@ class MaintenanceReminderController extends Controller
 
     public function update(Request $request, MaintenanceReminder $reminder)
     {
+        if (!$request->user()->hasPermission('manage_reminders')) {
+            return response()->json(['message' => 'Permission refusÈe : manage_reminders'], 403);
+        }
+
         $data = $request->validate([
             'vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
             'type' => ['required', 'string'],
@@ -74,6 +82,10 @@ class MaintenanceReminderController extends Controller
     // Renouveler un rappel apr√®s maintenance effectu√©e
     public function renew(Request $request, MaintenanceReminder $reminder)
     {
+        if (!$request->user()->hasPermission('manage_reminders')) {
+            return response()->json(['message' => 'Permission refusÈe : manage_reminders'], 403);
+        }
+
         $data = $request->validate([
             'mileage_interval' => ['nullable', 'integer', 'min:1'],
             'date_months' => ['nullable', 'integer', 'min:1'],
@@ -98,6 +110,10 @@ class MaintenanceReminderController extends Controller
 
     public function destroy(MaintenanceReminder $reminder)
     {
+        if (!request()->user()->hasPermission('manage_reminders')) {
+            return response()->json(['message' => 'Permission refusÈe : manage_reminders'], 403);
+        }
+
         $reminder->delete();
 
         return response()->json(['message' => 'Rappel supprim√© avec succ√®s']);

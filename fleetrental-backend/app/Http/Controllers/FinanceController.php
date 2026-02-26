@@ -11,6 +11,10 @@ class FinanceController extends Controller
 {
     public function index(Request $request)
     {
+        if (!$request->user()->hasPermission('view_finances')) {
+            return response()->json(['message' => 'Permission refusée : view_finances'], 403);
+        }
+
         $companyId = $request->user()->company_id;
         $period    = $request->query('period', 'year');
 

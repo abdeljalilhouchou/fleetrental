@@ -37,6 +37,10 @@ class VehicleDocumentController extends Controller
     // Ajouter un document
     public function store(Request $request, Vehicle $vehicle)
     {
+        if (!$request->user()->hasPermission('manage_vehicle_documents')) {
+            return response()->json(['message' => 'Permission refus�e : manage_vehicle_documents'], 403);
+        }
+
         if (!$this->canAccessVehicle($request, $vehicle)) {
             return response()->json(['message' => 'Accès refusé'], 403);
         }
@@ -77,6 +81,10 @@ class VehicleDocumentController extends Controller
     // Supprimer un document
     public function destroy(Request $request, VehicleDocument $document)
     {
+        if (!$request->user()->hasPermission('manage_vehicle_documents')) {
+            return response()->json(['message' => 'Permission refus�e : manage_vehicle_documents'], 403);
+        }
+
         if (!$this->canAccessVehicle($request, $document->vehicle)) {
             return response()->json(['message' => 'Accès refusé'], 403);
         }

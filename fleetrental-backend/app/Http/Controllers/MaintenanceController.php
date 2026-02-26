@@ -24,6 +24,10 @@ class MaintenanceController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('create_maintenances')) {
+            return response()->json(['message' => 'Permission refusée : create_maintenances'], 403);
+        }
+
         $data = $request->validate([
             'vehicle_id'             => ['required', 'integer', 'exists:vehicles,id'],
             'type'                   => ['required', 'string'],
@@ -94,6 +98,10 @@ class MaintenanceController extends Controller
 
     public function update(Request $request, Maintenance $maintenance)
     {
+        if (!$request->user()->hasPermission('edit_maintenances')) {
+            return response()->json(['message' => 'Permission refusée : edit_maintenances'], 403);
+        }
+
         $data = $request->validate([
             'vehicle_id'             => ['required', 'integer', 'exists:vehicles,id'],
             'type'                   => ['required', 'string'],
@@ -111,6 +119,10 @@ class MaintenanceController extends Controller
     // Marquer une maintenance comme terminÃ©e
     public function complete(Maintenance $maintenance)
     {
+        if (!request()->user()->hasPermission('complete_maintenances')) {
+            return response()->json(['message' => 'Permission refusée : complete_maintenances'], 403);
+        }
+
         $maintenance->update(['status' => 'completed']);
 
         // VÃ©rifie si le vÃ©hicule a d'autres maintenances en cours
@@ -138,6 +150,10 @@ class MaintenanceController extends Controller
 
     public function destroy(Maintenance $maintenance)
     {
+        if (!request()->user()->hasPermission('delete_maintenances')) {
+            return response()->json(['message' => 'Permission refusée : delete_maintenances'], 403);
+        }
+
         $vehicleId = $maintenance->vehicle_id;
         $maintenance->delete();
 

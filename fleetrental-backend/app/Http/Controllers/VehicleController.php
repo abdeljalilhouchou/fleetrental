@@ -25,6 +25,10 @@ class VehicleController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('create_vehicles')) {
+            return response()->json(['message' => 'Permission refusée : create_vehicles'], 403);
+        }
+
         $validated = $request->validate([
             'brand' => 'required|string|max:100',
             'model' => 'required|string|max:100',
@@ -48,7 +52,10 @@ class VehicleController extends Controller
 
     public function update(Request $request, Vehicle $vehicle)
     {
-        // Vérifier que le véhicule appartient à la même entreprise
+        if (!$request->user()->hasPermission('edit_vehicles')) {
+            return response()->json(['message' => 'Permission refusée : edit_vehicles'], 403);
+        }
+
         if ($vehicle->company_id !== $request->user()->company_id) {
             return response()->json(['message' => 'Accès refusé'], 403);
         }
@@ -74,7 +81,10 @@ class VehicleController extends Controller
 
     public function destroy(Vehicle $vehicle)
     {
-        // Vérifier que le véhicule appartient à la même entreprise
+        if (!request()->user()->hasPermission('delete_vehicles')) {
+            return response()->json(['message' => 'Permission refusée : delete_vehicles'], 403);
+        }
+
         if ($vehicle->company_id !== request()->user()->company_id) {
             return response()->json(['message' => 'Accès refusé'], 403);
         }
@@ -86,6 +96,10 @@ class VehicleController extends Controller
 
     public function uploadPhoto(Request $request, Vehicle $vehicle)
     {
+        if (!$request->user()->hasPermission('edit_vehicles')) {
+            return response()->json(['message' => 'Permission refusée : edit_vehicles'], 403);
+        }
+
         if ($vehicle->company_id !== $request->user()->company_id) {
             return response()->json(['message' => 'Accès refusé'], 403);
         }
@@ -104,12 +118,12 @@ class VehicleController extends Controller
         return response()->json($vehicle);
     }
 
-    /**
-     * NOUVELLE MÉTHODE : Change uniquement le statut (accessible aux employés)
-     */
     public function updateStatus(Request $request, Vehicle $vehicle)
     {
-        // Vérifier que le véhicule appartient à la même entreprise
+        if (!$request->user()->hasPermission('change_vehicle_status')) {
+            return response()->json(['message' => 'Permission refusée : change_vehicle_status'], 403);
+        }
+
         if ($vehicle->company_id !== $request->user()->company_id) {
             return response()->json(['message' => 'Accès refusé'], 403);
         }

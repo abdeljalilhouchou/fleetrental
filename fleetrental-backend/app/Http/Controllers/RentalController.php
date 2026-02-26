@@ -33,6 +33,10 @@ class RentalController extends Controller
     // Créer une location
     public function store(Request $request)
     {
+        if (!$request->user()->hasPermission('create_rentals')) {
+            return response()->json(['message' => 'Permission refus�e : create_rentals'], 403);
+        }
+
         $validated = $request->validate([
             'vehicle_id' => 'required|exists:vehicles,id',
             'customer_name' => 'required|string|max:255',
@@ -192,6 +196,10 @@ class RentalController extends Controller
     // Modifier une location
     public function update(Request $request, Rental $rental)
     {
+        if (!$request->user()->hasPermission('edit_rentals')) {
+            return response()->json(['message' => 'Permission refus�e : edit_rentals'], 403);
+        }
+
         // Vérifier que la location appartient à la company
         if ($request->user()->role !== 'super_admin' && $rental->company_id !== $request->user()->company_id) {
             return response()->json(['message' => 'Non autorisé'], 403);
@@ -229,6 +237,10 @@ class RentalController extends Controller
     // Compléter une location (retour du véhicule)
     public function complete(Request $request, Rental $rental)
     {
+        if (!$request->user()->hasPermission('complete_rentals')) {
+            return response()->json(['message' => 'Permission refus�e : complete_rentals'], 403);
+        }
+
         // Vérifier que la location appartient à la company
         if ($request->user()->role !== 'super_admin' && $rental->company_id !== $request->user()->company_id) {
             return response()->json(['message' => 'Non autorisé'], 403);
@@ -279,6 +291,10 @@ class RentalController extends Controller
     // Annuler une location
     public function cancel(Request $request, Rental $rental)
     {
+        if (!$request->user()->hasPermission('cancel_rentals')) {
+            return response()->json(['message' => 'Permission refus�e : cancel_rentals'], 403);
+        }
+
         // Vérifier que la location appartient à la company
         if ($request->user()->role !== 'super_admin' && $rental->company_id !== $request->user()->company_id) {
             return response()->json(['message' => 'Non autorisé'], 403);
@@ -317,6 +333,10 @@ class RentalController extends Controller
     // Supprimer une location (seulement si annulée)
     public function destroy(Request $request, Rental $rental)
     {
+        if (!$request->user()->hasPermission('delete_rentals')) {
+            return response()->json(['message' => 'Permission refus�e : delete_rentals'], 403);
+        }
+
         // Vérifier que la location appartient à la company
         if ($request->user()->role !== 'super_admin' && $rental->company_id !== $request->user()->company_id) {
             return response()->json(['message' => 'Non autorisé'], 403);
