@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { logout, storageUrl } from '../../lib/api';
 import { useData } from '../context/DataContext';
-import { LayoutDashboard, Gauge, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, Car, Gauge, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet, CalendarCheck } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 // Navigation par rôle (permission = view_* permission requise pour afficher le lien)
