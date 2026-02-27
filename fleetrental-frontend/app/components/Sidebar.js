@@ -97,9 +97,7 @@ export default function Sidebar() {
             {/* Logo */}
             <div className="p-6 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                        <Gauge size={20} className="text-white" />
-                    </div>
+                    <img src="/logo.png" alt="FleetRental" className="w-10 h-10 rounded-xl object-cover" />
                     <span className="font-bold text-lg text-slate-800 dark:text-white">FleetRental</span>
                     <button onClick={() => setIsOpen(false)} className="lg:hidden ml-auto text-slate-400 hover:text-slate-800 dark:hover:text-white">
                         <X size={20} />

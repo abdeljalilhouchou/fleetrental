@@ -37,8 +37,8 @@ export default function LoginPage() {
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-2xl shadow-blue-600/30">
-                        <Gauge size={32} className="text-white" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-2xl overflow-hidden">
+                        <img src="/logo.png" alt="FleetRental" className="w-full h-full object-cover" />
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2">FleetRental</h1>
                     <p className="text-blue-200 text-sm">Gestion de flotte automobile</p>
