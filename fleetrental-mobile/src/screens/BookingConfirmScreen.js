@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet,
-    SafeAreaView, Share,
+    SafeAreaView, Share, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 

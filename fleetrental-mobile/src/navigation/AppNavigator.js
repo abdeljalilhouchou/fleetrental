@@ -8,6 +8,7 @@ import VehicleDetailScreen from '../screens/VehicleDetailScreen';
 import BookingScreen from '../screens/BookingScreen';
 import BookingConfirmScreen from '../screens/BookingConfirmScreen';
 import TrackReservationScreen from '../screens/TrackReservationScreen';
+import SplashAnimationScreen from '../screens/SplashAnimationScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,7 +16,7 @@ export default function AppNavigator() {
     return (
         <NavigationContainer>
             <Stack.Navigator
-                initialRouteName="Home"
+                initialRouteName="Splash"
                 screenOptions={{
                     headerStyle: { backgroundColor: '#1e40af' },
                     headerTintColor: '#fff',
@@ -23,6 +24,11 @@ export default function AppNavigator() {
                     headerBackTitleVisible: false,
                 }}
             >
+                <Stack.Screen
+                    name="Splash"
+                    component={SplashAnimationScreen}
+                    options={{ headerShown: false, animation: 'none' }}
+                />
                 <Stack.Screen
                     name="Home"
                     component={HomeScreen}

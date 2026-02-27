@@ -29,6 +29,7 @@ Route::prefix('public')->group(function () {
     Route::get('/vehicles/{vehicle}', [PublicController::class, 'vehicleDetail']);
     Route::post('/reservations', [PublicController::class, 'createReservation']);
     Route::get('/reservations/{reference}', [PublicController::class, 'trackReservation']);
+    Route::get('/vehicles/{vehicle}/blocked-dates', [PublicController::class, 'blockedDates']);
 });
 
 Route::post('/login', [AuthController::class, 'login']);

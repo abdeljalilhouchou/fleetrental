@@ -41,3 +41,7 @@ export const createReservation = (data) =>
 // Suivre une réservation par référence
 export const trackReservation = (reference) =>
     request(`/reservations/${reference}`);
+
+// Dates bloquées d'un véhicule (réservations pending/confirmed)
+export const getBlockedDates = (vehicleId) =>
+    request(`/vehicles/${vehicleId}/blocked-dates`);

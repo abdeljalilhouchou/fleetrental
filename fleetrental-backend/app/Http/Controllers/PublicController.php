@@ -175,6 +175,26 @@ class PublicController extends Controller
         ], 201);
     }
 
+    // ─── Dates bloquées d'un véhicule ────────────────────────────
+    public function blockedDates(Vehicle $vehicle)
+    {
+        $reservations = Reservation::where('vehicle_id', $vehicle->id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->get(['start_date', 'end_date']);
+
+        $dates = [];
+        foreach ($reservations as $r) {
+            $current = \Carbon\Carbon::parse($r->start_date);
+            $end     = \Carbon\Carbon::parse($r->end_date);
+            while ($current->lte($end)) {
+                $dates[] = $current->format('Y-m-d');
+                $current->addDay();
+            }
+        }
+
+        return response()->json(array_values(array_unique($dates)));
+    }
+
     // ─── Suivre une réservation par référence ─────────────────────
     public function trackReservation(string $reference)
     {
