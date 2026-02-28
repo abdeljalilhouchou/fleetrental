@@ -5,7 +5,8 @@ import { useData } from '@/app/context/DataContext';
 import { getRoles, getAllPermissions, updateRolePermissions } from '@/lib/api';
 import {
     Shield, Car, FileText, Wrench, Users, DollarSign, Bell,
-    Check, X, ChevronRight, Save, RotateCcw, Lock
+    Check, X, ChevronRight, Save, RotateCcw, Lock,
+    Building2, ClipboardList, User, Gauge
 } from 'lucide-react';
 
 // ─── Config modules ───────────────────────────────────────────────────────────
@@ -67,12 +68,18 @@ const MODULE_CONFIG = {
 };
 
 const ROLE_ICONS = {
-    company_admin: '🏢',
-    fleet_manager: '🚗',
-    rental_agent: '📋',
-    mechanic: '🔧',
-    employee: '👤',
+    company_admin: { icon: Building2,     color: 'text-blue-500' },
+    fleet_manager: { icon: Gauge,         color: 'text-indigo-500' },
+    rental_agent:  { icon: ClipboardList, color: 'text-purple-500' },
+    mechanic:      { icon: Wrench,        color: 'text-orange-500' },
+    employee:      { icon: User,          color: 'text-green-500' },
 };
+
+function RoleIcon({ name, size = 18, className = '' }) {
+    const cfg = ROLE_ICONS[name];
+    const Icon = cfg?.icon ?? User;
+    return <Icon size={size} className={className || cfg?.color || 'text-slate-400'} />;
+}
 
 // ─── Toggle Switch ────────────────────────────────────────────────────────────
 function Toggle({ checked, onChange, disabled }) {
@@ -302,7 +309,7 @@ export default function RolesPermissionsPage() {
                             >
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-lg">{ROLE_ICONS[role.name] || '👤'}</span>
+                                        <RoleIcon name={role.name} size={18} className={isSelected ? 'text-white' : undefined} />
                                         <span className="font-semibold text-sm">{role.display_name}</span>
                                     </div>
                                     {isSelected && <ChevronRight size={14} />}
@@ -335,7 +342,7 @@ export default function RolesPermissionsPage() {
                             <div className="flex items-center justify-between mb-4">
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-2xl">{ROLE_ICONS[selectedRole.name] || '👤'}</span>
+                                        <RoleIcon name={selectedRole.name} size={24} />
                                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                                             {selectedRole.display_name}
                                         </h2>
