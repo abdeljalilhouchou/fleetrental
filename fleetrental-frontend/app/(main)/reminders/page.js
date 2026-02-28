@@ -593,10 +593,12 @@ export default function RemindersPage() {
                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800/50 rounded-lg flex items-center justify-center shrink-0">
                   <Bell size={16} className="text-blue-600 dark:text-blue-400" />
                 </div>
-                <p className="text-xs text-blue-700 dark:text-blue-300">
-                  🔴 <strong>En retard</strong> si dépassé · 🟡{" "}
-                  <strong>À venir</strong> si &lt; 500 km ou 7 jours · 🟢{" "}
-                  <strong>OK</strong> sinon
+                <p className="text-xs text-blue-700 dark:text-blue-300 flex flex-wrap items-center gap-x-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" /> <strong>En retard</strong> si dépassé
+                  <span className="mx-1">·</span>
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0" /> <strong>À venir</strong> si &lt; 500 km ou 7 jours
+                  <span className="mx-1">·</span>
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 shrink-0" /> <strong>OK</strong> sinon
                 </p>
               </div>
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '../../context/DataContext';
 import RoleProtector from '../../components/RoleProtector';
-import { Car, Wrench, Plus, ArrowRight, CheckCircle2, Clock, AlertTriangle, XCircle } from 'lucide-react';
+import { Car, Wrench, Plus, ArrowRight, CheckCircle2, Clock, AlertTriangle, XCircle, Hand } from 'lucide-react';
 
 const STATUS_CONFIG = {
     available:      { label: 'Disponible',     color: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30',  icon: CheckCircle2 },
@@ -39,7 +39,7 @@ export default function DashboardPage() {
         <div>
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Bonjour, {user?.name} 👋</h1>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">Bonjour, {user?.name} <Hand size={22} className="text-yellow-400" /></h1>
                 <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Voici un aperçu de votre flotte aujourd&apos;hui</p>
             </div>
 

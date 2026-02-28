@@ -5,7 +5,7 @@ import { useData } from '../../context/DataContext';
 import { getToken, storageUrl } from '../../../lib/api';
 import { useRouter } from 'next/navigation';
 import RoleProtector from '../../components/RoleProtector';
-import { Car, Plus, Edit2, Trash2, Search, CheckCircle2, Clock, AlertTriangle, XCircle, Repeat, AlertCircle, Eye, Camera, LayoutGrid, List, FileText, Download, Shield, Wrench, FileCheck } from 'lucide-react';
+import { Car, Plus, Edit2, Trash2, Search, CheckCircle2, Clock, AlertTriangle, XCircle, Repeat, AlertCircle, Eye, Camera, LayoutGrid, List, FileText, Download, Shield, Wrench, FileCheck, Paperclip } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -863,7 +863,7 @@ export default function VehiclesPage() {
                                         <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Fichier (PDF / image, max 5MB)</label>
                                         <input type="file" accept=".pdf,image/*" onChange={handleDocFileChange}
                                             className="w-full text-xs text-gray-500 dark:text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-600 dark:file:bg-blue-900/30 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer" />
-                                        {docForm.file_name && <p className="text-xs text-gray-400 mt-1">📎 {docForm.file_name}</p>}
+                                        {docForm.file_name && <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Paperclip size={12} /> {docForm.file_name}</p>}
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Notes</label>
