@@ -45,3 +45,18 @@ export const trackReservation = (reference) =>
 // Dates bloquées d'un véhicule (réservations pending/confirmed)
 export const getBlockedDates = (vehicleId) =>
     request(`/vehicles/${vehicleId}/blocked-dates`);
+
+// ── GPS Tracking ──────────────────────────────────────────────────────────────
+const GPS_KEY = 'fleetrental_gps_2026';
+
+export const sendLocation = (vehicleId, latitude, longitude, speed, driverName) =>
+    request(`/vehicles/${vehicleId}/location`, {
+        method: 'POST',
+        body: JSON.stringify({ latitude, longitude, speed, driver_name: driverName, api_key: GPS_KEY }),
+    });
+
+export const stopTracking = (vehicleId) =>
+    request(`/vehicles/${vehicleId}/location/stop`, {
+        method: 'POST',
+        body: JSON.stringify({ api_key: GPS_KEY }),
+    });

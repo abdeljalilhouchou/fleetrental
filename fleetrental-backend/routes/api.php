@@ -19,6 +19,7 @@ use App\Http\Controllers\VehicleDocumentController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\GpsController;
 
 // ═══════════════════════════════════════════════════════════
 // ROUTES PUBLIQUES — Application mobile cliente (sans auth)
@@ -30,6 +31,10 @@ Route::prefix('public')->group(function () {
     Route::post('/reservations', [PublicController::class, 'createReservation']);
     Route::get('/reservations/{reference}', [PublicController::class, 'trackReservation']);
     Route::get('/vehicles/{vehicle}/blocked-dates', [PublicController::class, 'blockedDates']);
+
+    // ── GPS Tracking (app mobile chauffeur) ──
+    Route::post('/vehicles/{vehicleId}/location', [GpsController::class, 'updateLocation']);
+    Route::post('/vehicles/{vehicleId}/location/stop', [GpsController::class, 'stopTracking']);
 });
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -59,6 +64,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ═══════════════════════════════════════════════════════════
     // ROUTES ACCESSIBLES PAR TOUS (super_admin, company_admin, employee)
     // ═══════════════════════════════════════════════════════════
+
+    // GPS - positions actives (pour dashboard web)
+    Route::get('/gps/active-locations', [GpsController::class, 'getActiveLocations']);
 
     // Véhicules - lecture pour tous
     Route::get('/vehicles', [VehicleController::class, 'index']);
