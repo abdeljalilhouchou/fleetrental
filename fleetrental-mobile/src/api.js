@@ -23,9 +23,13 @@ async function request(path, options = {}) {
 // Liste des entreprises
 export const getCompanies = () => request('/companies');
 
-// Véhicules disponibles d'une entreprise
+// Véhicules disponibles d'une entreprise (clients)
 export const getCompanyVehicles = (companyId) =>
     request(`/companies/${companyId}/vehicles`);
+
+// Véhicules loués d'une entreprise (pour mode chauffeur GPS)
+export const getRentedVehicles = (companyId) =>
+    request(`/companies/${companyId}/vehicles?status=rented`);
 
 // Détail d'un véhicule
 export const getVehicle = (vehicleId) =>

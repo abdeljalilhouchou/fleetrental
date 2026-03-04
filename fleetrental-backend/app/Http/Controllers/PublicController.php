@@ -36,11 +36,12 @@ class PublicController extends Controller
         return response()->json($companies);
     }
 
-    // ─── Véhicules disponibles d'une entreprise ─────────────────
-    public function companyVehicles(Company $company)
+    // ─── Véhicules d'une entreprise (filtrables par status) ─────
+    public function companyVehicles(Company $company, Request $request)
     {
+        $status = $request->query('status', 'available');
         $vehicles = Vehicle::where('company_id', $company->id)
-            ->where('status', 'available')
+            ->where('status', $status)
             ->get()
             ->map(function ($v) {
                 return [

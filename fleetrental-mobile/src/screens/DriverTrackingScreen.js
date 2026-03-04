@@ -4,7 +4,7 @@ import {
     SafeAreaView, Alert, ActivityIndicator, ScrollView, FlatList
 } from 'react-native';
 import * as Location from 'expo-location';
-import { getCompanies, getCompanyVehicles, sendLocation, stopTracking } from '../api';
+import { getCompanies, getRentedVehicles, sendLocation, stopTracking } from '../api';
 
 export default function DriverTrackingScreen() {
     // Étapes : 'company' → 'vehicle' → 'tracking'
@@ -30,9 +30,12 @@ export default function DriverTrackingScreen() {
     const selectCompany = async (company) => {
         setSelectedCompany(company);
         setLoading(true);
+        setError('');
         try {
-            const v = await getCompanyVehicles(company.id);
-            setVehicles(Array.isArray(v) ? v : []);
+            const res = await getRentedVehicles(company.id);
+            const list = Array.isArray(res) ? res : (res?.vehicles ?? []);
+            setVehicles(list);
+            if (list.length === 0) setError('Aucun véhicule en statut "loué" pour cette entreprise');
             setStep('vehicle');
         } catch {
             setError('Impossible de charger les véhicules');
