@@ -114,7 +114,7 @@ export default function Sidebar() {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {loading || !user ? (
                     [1,2,3,4].map(i => (
                         <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl">

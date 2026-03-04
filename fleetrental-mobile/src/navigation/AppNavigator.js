@@ -9,7 +9,6 @@ import BookingScreen from '../screens/BookingScreen';
 import BookingConfirmScreen from '../screens/BookingConfirmScreen';
 import TrackReservationScreen from '../screens/TrackReservationScreen';
 import SplashAnimationScreen from '../screens/SplashAnimationScreen';
-import DriverTrackingScreen from '../screens/DriverTrackingScreen';
 import RenterLoginScreen from '../screens/RenterLoginScreen';
 import RenterDashboardScreen from '../screens/RenterDashboardScreen';
 
@@ -62,12 +61,7 @@ export default function AppNavigator() {
                     component={TrackReservationScreen}
                     options={{ title: 'Suivre ma réservation' }}
                 />
-                <Stack.Screen
-                    name="DriverTracking"
-                    component={DriverTrackingScreen}
-                    options={{ title: 'Mode Chauffeur GPS' }}
-                />
-                <Stack.Screen
+<Stack.Screen
                     name="RenterLogin"
                     component={RenterLoginScreen}
                     options={{ title: 'Connexion locataire', headerShown: false }}

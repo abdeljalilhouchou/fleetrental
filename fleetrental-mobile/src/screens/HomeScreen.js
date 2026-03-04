@@ -73,20 +73,12 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.headerTitle}>FleetRental</Text>
                     <Text style={styles.headerSub}>Trouvez votre véhicule idéal</Text>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <TouchableOpacity
-                        style={styles.trackBtn}
-                        onPress={() => navigation.navigate('DriverTracking')}
-                    >
-                        <Ionicons name="navigate" size={24} color="#16a34a" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.trackBtn}
-                        onPress={() => navigation.navigate('TrackReservation')}
-                    >
-                        <Ionicons name="search-circle" size={28} color="#2563eb" />
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                    style={styles.trackBtn}
+                    onPress={() => navigation.navigate('TrackReservation')}
+                >
+                    <Ionicons name="search-circle" size={28} color="#2563eb" />
+                </TouchableOpacity>
             </View>
 
             {/* Recherche */}
