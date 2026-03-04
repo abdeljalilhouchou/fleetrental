@@ -8,7 +8,7 @@ import {
     Car, Plus, Search, User, Phone,
     CheckCircle2, XCircle, Clock,
     AlertCircle, Upload, FileText, FileImage,
-    X, Eye, ChevronRight, Download
+    X, Eye, ChevronRight, Download, KeyRound, Copy, Check
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -89,6 +89,8 @@ export default function RentalsPage() {
 
     const [pdfLoading, setPdfLoading] = useState(null);
     const [csvLoading, setCsvLoading] = useState(false);
+    const [renterCredentials, setRenterCredentials] = useState(null);
+    const [copied, setCopied] = useState('');
 
     const handleDownloadContract = async (rental) => {
         setPdfLoading(rental.id);
@@ -140,6 +142,10 @@ export default function RentalsPage() {
 
             setShowModal(false);
             setForm(EMPTY_FORM);
+
+            if (data.renter_credentials) {
+                setRenterCredentials(data.renter_credentials);
+            }
 
         } catch (e) {
             setError('Erreur réseau: ' + e.message);
@@ -506,6 +512,18 @@ export default function RentalsPage() {
                                                         )}
                                                     </div>
 
+                                                    {/* Credentials locataire */}
+                                                    {r.renter_pin && (
+                                                        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl flex items-center gap-3">
+                                                            <KeyRound size={16} className="text-green-600 dark:text-green-400 shrink-0" />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="text-xs font-bold text-green-700 dark:text-green-400 uppercase mb-1">Accès application mobile</div>
+                                                                <div className="text-xs text-green-800 dark:text-green-300 font-mono truncate">{r.customer_email || `locataire_${r.id}@fleetrental.app`}</div>
+                                                                <div className="text-lg font-bold font-mono tracking-widest text-green-700 dark:text-green-300">{r.renter_pin}</div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
                                                     {/* Actions de la location */}
                                                     <div className="flex items-center gap-2 mb-4">
                                                         <button
@@ -715,6 +733,59 @@ export default function RentalsPage() {
                             <button onClick={handleSave} disabled={saving}
                                 className="flex-1 px-5 py-2.5 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition disabled:opacity-50">
                                 {saving ? 'Enregistrement...' : 'Créer la location'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Credentials Locataire */}
+            {renterCredentials && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+                                    <KeyRound size={20} className="text-green-600 dark:text-green-400" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white text-base">Compte locataire créé</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Remettez ces identifiants au locataire</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-3 border border-gray-200 dark:border-gray-700">
+                                <div className="flex items-center justify-between gap-2">
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Email</p>
+                                        <p className="text-sm font-mono font-semibold text-gray-900 dark:text-white">{renterCredentials.email}</p>
+                                    </div>
+                                    <button onClick={() => { navigator.clipboard.writeText(renterCredentials.email); setCopied('email'); setTimeout(() => setCopied(''), 2000); }}
+                                        className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-gray-500">
+                                        {copied === 'email' ? <Check size={15} className="text-green-500" /> : <Copy size={15} />}
+                                    </button>
+                                </div>
+                                <div className="border-t border-gray-200 dark:border-gray-700" />
+                                <div className="flex items-center justify-between gap-2">
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">PIN</p>
+                                        <p className="text-3xl font-mono font-bold text-green-600 dark:text-green-400 tracking-widest">{renterCredentials.pin}</p>
+                                    </div>
+                                    <button onClick={() => { navigator.clipboard.writeText(renterCredentials.pin); setCopied('pin'); setTimeout(() => setCopied(''), 2000); }}
+                                        className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition text-gray-500">
+                                        {copied === 'pin' ? <Check size={15} className="text-green-500" /> : <Copy size={15} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 text-center">
+                                Notez ces identifiants maintenant, le PIN ne sera plus affiché.
+                            </p>
+                        </div>
+                        <div className="p-4 pt-0">
+                            <button onClick={() => setRenterCredentials(null)}
+                                className="w-full py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition">
+                                J&apos;ai noté les identifiants
                             </button>
                         </div>
                     </div>

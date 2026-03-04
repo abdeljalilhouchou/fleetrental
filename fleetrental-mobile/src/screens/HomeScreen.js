@@ -132,14 +132,23 @@ export default function HomeScreen({ navigation }) {
                 />
             )}
 
-            {/* Bouton suivi */}
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => navigation.navigate('TrackReservation')}
-            >
-                <Ionicons name="receipt-outline" size={22} color="#fff" />
-                <Text style={styles.fabText}>Suivre ma réservation</Text>
-            </TouchableOpacity>
+            {/* Boutons bas */}
+            <View style={styles.fabRow}>
+                <TouchableOpacity
+                    style={[styles.fab, styles.fabBlue]}
+                    onPress={() => navigation.navigate('TrackReservation')}
+                >
+                    <Ionicons name="receipt-outline" size={20} color="#fff" />
+                    <Text style={styles.fabText}>Suivre ma réservation</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.fab, styles.fabGreen]}
+                    onPress={() => navigation.navigate('RenterLogin')}
+                >
+                    <Ionicons name="key-outline" size={20} color="#fff" />
+                    <Text style={styles.fabText}>J'ai une location</Text>
+                </TouchableOpacity>
+            </View>
         </SafeAreaView>
     );
 }
@@ -187,11 +196,16 @@ const styles = StyleSheet.create({
     },
     errorText: { flex: 1, color: '#dc2626', fontSize: 13 },
     retryText: { color: '#2563eb', fontWeight: '600', fontSize: 13 },
-    fab: {
+    fabRow: {
         position: 'absolute', bottom: 24, left: 16, right: 16,
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-        backgroundColor: '#2563eb', borderRadius: 14, paddingVertical: 14,
-        shadowColor: '#2563eb', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6,
+        flexDirection: 'row', gap: 10,
     },
-    fabText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+    fab: {
+        flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+        borderRadius: 14, paddingVertical: 14,
+        shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6,
+    },
+    fabBlue:  { backgroundColor: '#2563eb', shadowColor: '#2563eb' },
+    fabGreen: { backgroundColor: '#16a34a', shadowColor: '#16a34a' },
+    fabText: { color: '#fff', fontWeight: '700', fontSize: 13 },
 });

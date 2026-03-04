@@ -1,11 +1,36 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 // URL de l'API backend (Railway)
-const API_URL = 'https://fleetrental-production.up.railway.app/api/public';
+const API_URL      = 'https://fleetrental-production.up.railway.app/api/public';
+const API_AUTH_URL = 'https://fleetrental-production.up.railway.app/api';
 
 async function request(path, options = {}) {
     const res = await fetch(`${API_URL}${path}`, {
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            ...options.headers,
+        },
+        ...options,
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+        throw new Error(data.message || 'Erreur serveur');
+    }
+
+    return data;
+}
+
+// Requête authentifiée (avec token Sanctum)
+async function authRequest(path, options = {}) {
+    const token = await AsyncStorage.getItem('renter_token');
+    const res = await fetch(`${API_AUTH_URL}${path}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             ...options.headers,
         },
         ...options,
@@ -50,7 +75,7 @@ export const trackReservation = (reference) =>
 export const getBlockedDates = (vehicleId) =>
     request(`/vehicles/${vehicleId}/blocked-dates`);
 
-// ── GPS Tracking ──────────────────────────────────────────────────────────────
+// ── GPS Tracking (mode chauffeur anonyme) ─────────────────────────────────────
 const GPS_KEY = 'fleetrental_gps_2026';
 
 export const sendLocation = (vehicleId, latitude, longitude, speed, driverName) =>
@@ -64,3 +89,33 @@ export const stopTracking = (vehicleId) =>
         method: 'POST',
         body: JSON.stringify({ api_key: GPS_KEY }),
     });
+
+// ── Auth locataire ────────────────────────────────────────────────────────────
+export const renterLogin = async (email, pin) => {
+    const data = await authRequest('/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password: pin }),
+    });
+    if (data.token) {
+        await AsyncStorage.setItem('renter_token', data.token);
+    }
+    return data;
+};
+
+export const renterLogout = async () => {
+    await AsyncStorage.removeItem('renter_token');
+};
+
+export const getRenterToken = () => AsyncStorage.getItem('renter_token');
+
+// ── Locataire — location active + GPS authentifié ────────────────────────────
+export const getMyRental  = () => authRequest('/renter/my-rental');
+
+export const sendRenterLocation = (latitude, longitude, speed) =>
+    authRequest('/renter/location', {
+        method: 'POST',
+        body: JSON.stringify({ latitude, longitude, speed }),
+    });
+
+export const stopRenterTracking = () =>
+    authRequest('/renter/location/stop', { method: 'POST' });

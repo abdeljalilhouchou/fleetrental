@@ -10,6 +10,8 @@ import BookingConfirmScreen from '../screens/BookingConfirmScreen';
 import TrackReservationScreen from '../screens/TrackReservationScreen';
 import SplashAnimationScreen from '../screens/SplashAnimationScreen';
 import DriverTrackingScreen from '../screens/DriverTrackingScreen';
+import RenterLoginScreen from '../screens/RenterLoginScreen';
+import RenterDashboardScreen from '../screens/RenterDashboardScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -64,6 +66,16 @@ export default function AppNavigator() {
                     name="DriverTracking"
                     component={DriverTrackingScreen}
                     options={{ title: 'Mode Chauffeur GPS' }}
+                />
+                <Stack.Screen
+                    name="RenterLogin"
+                    component={RenterLoginScreen}
+                    options={{ title: 'Connexion locataire', headerShown: false }}
+                />
+                <Stack.Screen
+                    name="RenterDashboard"
+                    component={RenterDashboardScreen}
+                    options={{ headerShown: false }}
                 />
             </Stack.Navigator>
         </NavigationContainer>

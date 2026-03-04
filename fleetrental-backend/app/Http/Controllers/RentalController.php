@@ -98,6 +98,31 @@ class RentalController extends Controller
             $vehicle->status = 'rented';
             $vehicle->save();
 
+            // ── Créer le compte locataire ────────────────────────────────────
+            $pin         = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $renterEmail = $validated['customer_email']
+                ?? "locataire_{$rental->id}@fleetrental.app";
+
+            // Si l'email existe déjà, générer un email unique
+            if (User::where('email', $renterEmail)->exists()) {
+                $renterEmail = "locataire_{$rental->id}_" . time() . "@fleetrental.app";
+            }
+
+            $renterUser = User::create([
+                'name'       => $validated['customer_name'],
+                'email'      => $renterEmail,
+                'password'   => bcrypt($pin),
+                'company_id' => $vehicle->company_id,
+                'role'       => 'employee',
+                'is_active'  => true,
+            ]);
+
+            $rental->update([
+                'renter_user_id' => $renterUser->id,
+                'renter_pin'     => $pin,
+            ]);
+            // ─────────────────────────────────────────────────────────────────
+
             // Vérifier que ça a bien été sauvegardé
             $vehicle->refresh();
 
@@ -173,7 +198,12 @@ class RentalController extends Controller
                 }
             }
 
-            return response()->json($rental, 201);
+            return response()->json(array_merge($rental->toArray(), [
+                'renter_credentials' => [
+                    'email' => $renterEmail,
+                    'pin'   => $pin,
+                ],
+            ]), 201);
 
         } catch (\Exception $e) {
             DB::rollBack();

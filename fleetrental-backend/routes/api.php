@@ -20,6 +20,7 @@ use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\GpsController;
+use App\Http\Controllers\RenterController;
 
 // ═══════════════════════════════════════════════════════════
 // ROUTES PUBLIQUES — Application mobile cliente (sans auth)
@@ -67,6 +68,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // GPS - positions actives (pour dashboard web)
     Route::get('/gps/active-locations', [GpsController::class, 'getActiveLocations']);
+
+    // ── Renter (locataire connecté via app mobile) ──
+    Route::get('/renter/my-rental',       [RenterController::class, 'myRental']);
+    Route::post('/renter/location',       [RenterController::class, 'updateLocation']);
+    Route::post('/renter/location/stop',  [RenterController::class, 'stopTracking']);
 
     // Véhicules - lecture pour tous
     Route::get('/vehicles', [VehicleController::class, 'index']);

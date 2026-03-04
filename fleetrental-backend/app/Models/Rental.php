@@ -11,6 +11,8 @@ class Rental extends Model
     protected $fillable = [
         'company_id',
         'vehicle_id',
+        'renter_user_id',
+        'renter_pin',
         'customer_name',
         'customer_phone',
         'customer_email',
@@ -50,6 +52,11 @@ class Rental extends Model
     public function files(): HasMany
     {
         return $this->hasMany(RentalFile::class);
+    }
+
+    public function renterUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'renter_user_id');
     }
 
     // Calculer le nombre de jours
