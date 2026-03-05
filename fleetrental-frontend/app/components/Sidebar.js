@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { logout, storageUrl } from '../../lib/api';
 import { useData } from '../context/DataContext';
-import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 // Navigation par rôle (permission = view_* permission requise pour afficher le lien)
@@ -21,7 +21,7 @@ const NAV_BY_ROLE = {
         { icon: Wrench,          label: 'Maintenances',   path: '/maintenances',  permission: 'view_maintenances' },
         { icon: Bell,            label: 'Rappels',        path: '/reminders',     permission: 'view_reminders' },
         { icon: FileText,        label: 'Locations',      path: '/rentals',       permission: 'view_rentals' },
-        { icon: CalendarCheck,   label: 'Réservations',   path: '/reservations' },
+        // { icon: CalendarCheck,   label: 'Réservations',   path: '/reservations' },
         // { icon: MapPin,          label: 'Suivi GPS',      path: '/gps' },
         { icon: Wallet,          label: 'Finances',       path: '/finances',      permission: 'view_finances' },
         { icon: BarChart2,       label: 'Statistiques',   path: '/stats' },
@@ -33,7 +33,7 @@ const NAV_BY_ROLE = {
         { icon: Wrench,          label: 'Maintenances',   path: '/maintenances',  permission: 'view_maintenances' },
         { icon: Bell,            label: 'Rappels',        path: '/reminders',     permission: 'view_reminders' },
         { icon: FileText,        label: 'Locations',      path: '/rentals',       permission: 'view_rentals' },
-        { icon: CalendarCheck,   label: 'Réservations',   path: '/reservations' },
+        // { icon: CalendarCheck,   label: 'Réservations',   path: '/reservations' },
         // { icon: MapPin,          label: 'Suivi GPS',      path: '/gps' },
         { icon: Wallet,          label: 'Finances',       path: '/finances',      permission: 'view_finances' },
         { icon: BarChart2,       label: 'Statistiques',   path: '/stats' },
@@ -41,7 +41,7 @@ const NAV_BY_ROLE = {
     rental_agent: [
         { icon: Car,             label: 'Véhicules',      path: '/vehicles',   permission: 'view_vehicles' },
         { icon: FileText,        label: 'Locations',      path: '/rentals',    permission: 'view_rentals' },
-        { icon: CalendarCheck,   label: 'Réservations',   path: '/reservations' },
+        // { icon: CalendarCheck,   label: 'Réservations',   path: '/reservations' },
     ],
     mechanic: [
         { icon: Car,             label: 'Véhicules',    path: '/vehicles',     permission: 'view_vehicles' },
