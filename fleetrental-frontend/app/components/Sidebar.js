@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { logout, storageUrl } from '../../lib/api';
 import { useData } from '../context/DataContext';
-import { LayoutDashboard, Car, Gauge, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet, CalendarCheck, MapPin } from 'lucide-react';
+import { LayoutDashboard, Car, Wrench, Bell, BarChart2, LogOut, User, Building2, Shield, Users, FileText, Settings, Menu, X, Wallet, CalendarCheck } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 // Navigation par rôle (permission = view_* permission requise pour afficher le lien)
@@ -22,7 +22,7 @@ const NAV_BY_ROLE = {
         { icon: Bell,            label: 'Rappels',        path: '/reminders',     permission: 'view_reminders' },
         { icon: FileText,        label: 'Locations',      path: '/rentals',       permission: 'view_rentals' },
         { icon: CalendarCheck,   label: 'Réservations',   path: '/reservations' },
-        { icon: MapPin,          label: 'Suivi GPS',      path: '/gps' },
+        // { icon: MapPin,          label: 'Suivi GPS',      path: '/gps' },
         { icon: Wallet,          label: 'Finances',       path: '/finances',      permission: 'view_finances' },
         { icon: BarChart2,       label: 'Statistiques',   path: '/stats' },
         { icon: Users,           label: 'Utilisateurs',   path: '/users',         permission: 'view_users' },
@@ -34,7 +34,7 @@ const NAV_BY_ROLE = {
         { icon: Bell,            label: 'Rappels',        path: '/reminders',     permission: 'view_reminders' },
         { icon: FileText,        label: 'Locations',      path: '/rentals',       permission: 'view_rentals' },
         { icon: CalendarCheck,   label: 'Réservations',   path: '/reservations' },
-        { icon: MapPin,          label: 'Suivi GPS',      path: '/gps' },
+        // { icon: MapPin,          label: 'Suivi GPS',      path: '/gps' },
         { icon: Wallet,          label: 'Finances',       path: '/finances',      permission: 'view_finances' },
         { icon: BarChart2,       label: 'Statistiques',   path: '/stats' },
     ],
