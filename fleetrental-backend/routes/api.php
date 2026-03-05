@@ -140,6 +140,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
         Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword']);
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive']);
+
+        // Permissions utilisateur (company_admin + super_admin, logique dans le controller)
+        Route::get('/users/{user}/permissions', [RolePermissionController::class, 'userPermissions']);
+        Route::put('/users/{user}/permissions', [RolePermissionController::class, 'updateUserPermissions']);
     });
 
     // ═══════════════════════════════════════════════════════════
@@ -170,8 +174,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/roles', [RolePermissionController::class, 'indexRoles']);
         Route::get('/permissions', [RolePermissionController::class, 'indexPermissions']);
         Route::put('/roles/{role}/permissions', [RolePermissionController::class, 'updateRolePermissions']);
-        Route::get('/users/{user}/permissions', [RolePermissionController::class, 'userPermissions']);
-        Route::put('/users/{user}/permissions', [RolePermissionController::class, 'updateUserPermissions']);
     });
     // ========================================
 // LOCATIONS (RENTALS) - Tous les rôles
