@@ -7,7 +7,7 @@ import RoleProtector from '../../components/RoleProtector';
 import {
     Users, Plus, Edit2, Trash2, Search, Shield, XCircle,
     AlertCircle, Mail, Key, User, Building2, ChevronDown,
-    ToggleLeft, ToggleRight
+    ToggleLeft, ToggleRight, Check, X, Minus
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -21,19 +21,25 @@ const EMPTY_FORM = {
 };
 
 const ROLE_LABELS = {
-    super_admin: 'Super Admin',
-    company_admin: 'Administrateur',
-    employee: 'Employé',
+    super_admin:    'Super Admin',
+    company_admin:  'Administrateur',
+    fleet_manager:  'Fleet Manager',
+    rental_agent:   'Agent Location',
+    mechanic:       'Mécanicien',
+    employee:       'Employé',
 };
 
 const ROLE_COLORS = {
-    super_admin: 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+    super_admin:   'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
     company_admin: 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
-    employee: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+    fleet_manager: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+    rental_agent:  'bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+    mechanic:      'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+    employee:      'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
 };
 
 export default function UsersPage() {
-    const { user: currentUser, users, companies, loading, refreshUsers } = useData();
+    const { user: currentUser, users, companies, refreshUsers } = useData();
 
     const [showModal, setShowModal]         = useState(false);
     const [form, setForm]                   = useState(EMPTY_FORM);
@@ -46,6 +52,14 @@ export default function UsersPage() {
     const [showResetModal, setShowResetModal]   = useState(false);
     const [resetUserId, setResetUserId]         = useState(null);
     const [resetForm, setResetForm]             = useState({ password: '', password_confirmation: '' });
+
+    // ── Permissions Modal ──────────────────────────
+    const [showPermModal, setShowPermModal] = useState(false);
+    const [permUser, setPermUser]           = useState(null);
+    const [permGroups, setPermGroups]       = useState({}); // { module: [{name, state, ...}] }
+    const [permLoading, setPermLoading]     = useState(false);
+    const [permSaving, setPermSaving]       = useState(false);
+    const [permError, setPermError]         = useState('');
 
     const headers = () => ({
         'Content-Type': 'application/json',
@@ -97,7 +111,7 @@ export default function UsersPage() {
         setForm({
             name:       u.name || '',
             email:      u.email || '',
-            password:   '', // Ne pas pré-remplir le mot de passe
+            password:   '',
             role:       u.role || 'employee',
             company_id: u.company_id || '',
         });
@@ -163,6 +177,81 @@ export default function UsersPage() {
         await refreshUsers();
     };
 
+    // ── PERMISSIONS ───────────────────────────────
+    const canManagePerms = (u) => {
+        if (currentUser?.role === 'super_admin') return u.id !== currentUser.id && u.role !== 'super_admin';
+        if (currentUser?.role === 'company_admin') return u.role !== 'super_admin' && u.role !== 'company_admin';
+        return false;
+    };
+
+    const handleOpenPerms = async (u) => {
+        setPermUser(u);
+        setPermGroups({});
+        setPermError('');
+        setPermLoading(true);
+        setShowPermModal(true);
+        try {
+            const res = await fetch(`${API_URL}/users/${u.id}/permissions`, { headers: headers() });
+            const data = await res.json();
+            if (!res.ok) { setPermError(data.message || 'Erreur'); return; }
+            setPermGroups(data);
+        } catch (e) {
+            setPermError('Erreur réseau');
+        } finally {
+            setPermLoading(false);
+        }
+    };
+
+    const togglePerm = (module, permName) => {
+        setPermGroups(prev => ({
+            ...prev,
+            [module]: prev[module].map(p => {
+                if (p.name !== permName) return p;
+                // Cycle: inherited_granted → revoked, inherited_denied → granted, granted → revoked, revoked → inherited
+                let next;
+                if (p.state === 'granted') next = 'revoked';
+                else if (p.state === 'revoked') next = p._baseState || 'inherited_denied';
+                else { next = p.state === 'inherited_granted' ? 'revoked' : 'granted'; }
+                return { ...p, state: next, _baseState: p._baseState || p.state };
+            })
+        }));
+    };
+
+    const resetPerm = (module, permName) => {
+        setPermGroups(prev => ({
+            ...prev,
+            [module]: prev[module].map(p => {
+                if (p.name !== permName) return p;
+                const base = p._baseState || p.state;
+                return { ...p, state: base, _baseState: undefined };
+            })
+        }));
+    };
+
+    const handleSavePerms = async () => {
+        setPermSaving(true);
+        setPermError('');
+        const overrides = Object.values(permGroups).flat().map(p => {
+            let state;
+            if (p.state === 'granted') state = 'granted';
+            else if (p.state === 'revoked') state = 'revoked';
+            else state = 'inherited';
+            return { name: p.name, state };
+        });
+        try {
+            const res = await fetch(`${API_URL}/users/${permUser.id}/permissions`, {
+                method: 'PUT', headers: headers(), body: JSON.stringify({ overrides }),
+            });
+            const data = await res.json();
+            if (!res.ok) { setPermError(data.message || 'Erreur'); return; }
+            setShowPermModal(false);
+        } catch (e) {
+            setPermError('Erreur réseau');
+        } finally {
+            setPermSaving(false);
+        }
+    };
+
     // ── FILTRES ───────────────────────────────────
     const filtered = users.filter(u => {
         const matchSearch = `${u.name} ${u.email}`.toLowerCase().includes(search.toLowerCase());
@@ -171,7 +260,12 @@ export default function UsersPage() {
     });
 
     const adminCount    = users.filter(u => u.role === 'company_admin').length;
-    const employeeCount = users.filter(u => u.role === 'employee').length;
+    const employeeCount = users.filter(u => u.role !== 'company_admin' && u.role !== 'super_admin').length;
+
+    const MODULE_LABELS = {
+        vehicles: 'Véhicules', maintenances: 'Maintenances', rentals: 'Locations',
+        reservations: 'Réservations', finances: 'Finances', users: 'Utilisateurs',
+    };
 
     return (
         <RoleProtector allowedRoles={['super_admin', 'company_admin']} requiredPermission="view_users">
@@ -276,10 +370,8 @@ export default function UsersPage() {
 
                                     {/* Rôle */}
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border ${ROLE_COLORS[u.role]}`}>
-                                            {u.role === 'super_admin' && <Shield size={11} />}
-                                            {u.role === 'company_admin' && <Shield size={11} />}
-                                            {u.role === 'employee' && <User size={11} />}
+                                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border ${ROLE_COLORS[u.role] || ROLE_COLORS.employee}`}>
+                                            <Shield size={11} />
                                             {ROLE_LABELS[u.role] || u.role}
                                         </span>
                                     </td>
@@ -314,6 +406,11 @@ export default function UsersPage() {
                                             <button onClick={() => handleEdit(u)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition">
                                                 <Edit2 size={16} />
                                             </button>
+                                            {canManagePerms(u) && (
+                                                <button onClick={() => handleOpenPerms(u)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 rounded-lg transition" title="Gérer les permissions">
+                                                    <Shield size={16} />
+                                                </button>
+                                            )}
                                             {canReset(u) && (
                                                 <button onClick={() => handleOpenReset(u)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition" title="Réinitialiser mot de passe">
                                                     <Key size={16} />
@@ -340,17 +437,14 @@ export default function UsersPage() {
                 )}
             </div>
 
-            {/* ── Modal ── */}
+            {/* ── Modal Créer/Éditer utilisateur ── */}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
                     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg">
-                        {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-green-50 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
-                                    {editingId
-                                        ? <Edit2 size={18} className="text-green-600" />
-                                        : <Users size={18} className="text-green-600" />}
+                                    {editingId ? <Edit2 size={18} className="text-green-600" /> : <Users size={18} className="text-green-600" />}
                                 </div>
                                 <div>
                                     <h2 className="font-bold text-gray-800 dark:text-white">{editingId ? 'Modifier' : 'Nouvel'} utilisateur</h2>
@@ -361,16 +455,12 @@ export default function UsersPage() {
                                 <XCircle size={20} />
                             </button>
                         </div>
-
-                        {/* Body */}
                         <div className="p-6 space-y-4">
                             {error && (
                                 <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs rounded-lg px-3 py-2 flex items-center gap-2">
                                     <AlertCircle size={14} /> {error}
                                 </div>
                             )}
-
-                            {/* Nom */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Nom complet</label>
                                 <div className="relative">
@@ -380,8 +470,6 @@ export default function UsersPage() {
                                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-green-500 focus:ring-4 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none text-sm text-gray-800 dark:text-white placeholder-gray-300 dark:placeholder-gray-500 bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition" />
                                 </div>
                             </div>
-
-                            {/* Email */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
                                 <div className="relative">
@@ -391,8 +479,6 @@ export default function UsersPage() {
                                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-green-500 focus:ring-4 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none text-sm text-gray-800 dark:text-white placeholder-gray-300 dark:placeholder-gray-500 bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition" />
                                 </div>
                             </div>
-
-                            {/* Entreprise - visible seulement pour super_admin */}
                             {currentUser?.role === 'super_admin' && (
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Entreprise</label>
@@ -410,8 +496,6 @@ export default function UsersPage() {
                                     </div>
                                 </div>
                             )}
-
-                            {/* Mot de passe */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                                     Mot de passe {editingId && <span className="text-gray-400 dark:text-gray-500 font-normal normal-case">(laisser vide pour ne pas changer)</span>}
@@ -423,8 +507,6 @@ export default function UsersPage() {
                                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-green-500 focus:ring-4 focus:ring-green-100 dark:focus:ring-green-900/30 outline-none text-sm text-gray-800 dark:text-white placeholder-gray-300 dark:placeholder-gray-500 bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition" />
                                 </div>
                             </div>
-
-                            {/* Rôle */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Rôle</label>
                                 <div className="relative">
@@ -437,27 +519,15 @@ export default function UsersPage() {
                                                 <option value="company_admin">Administrateur</option>
                                             </>
                                         )}
+                                        <option value="fleet_manager">Fleet Manager</option>
+                                        <option value="rental_agent">Agent Location</option>
+                                        <option value="mechanic">Mécanicien</option>
                                         <option value="employee">Employé</option>
                                     </select>
                                     <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
                                 </div>
-                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                                    {currentUser?.role === 'super_admin' ? (
-                                        <>
-                                            <strong>Super Admin :</strong> Accès complet à toutes les entreprises.<br />
-                                            <strong>Administrateur :</strong> Gère les utilisateurs et toutes les données de son entreprise.<br />
-                                            <strong>Employé :</strong> Consulte et gère les véhicules et maintenances.
-                                        </>
-                                    ) : (
-                                        <>
-                                            <strong>Employé :</strong> Peut consulter et gérer les véhicules et maintenances.
-                                        </>
-                                    )}
-                                </p>
                             </div>
                         </div>
-
-                        {/* Footer */}
                         <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
                             <button onClick={handleSave} disabled={saving}
                                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-green-600/20">
@@ -471,11 +541,11 @@ export default function UsersPage() {
                     </div>
                 </div>
             )}
+
             {/* ── Modal Réinitialiser mot de passe ── */}
             {showResetModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
                     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md">
-                        {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
@@ -483,25 +553,19 @@ export default function UsersPage() {
                                 </div>
                                 <div>
                                     <h2 className="font-bold text-gray-800 dark:text-white">Réinitialiser mot de passe</h2>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">
-                                        Pour {users.find(u => u.id === resetUserId)?.name || '...'}
-                                    </p>
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">Pour {users.find(u => u.id === resetUserId)?.name || '...'}</p>
                                 </div>
                             </div>
                             <button onClick={() => setShowResetModal(false)} className="text-gray-300 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                                 <XCircle size={20} />
                             </button>
                         </div>
-
-                        {/* Body */}
                         <div className="p-6 space-y-4">
                             {error && (
                                 <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs rounded-lg px-3 py-2 flex items-center gap-2">
                                     <AlertCircle size={14} /> {error}
                                 </div>
                             )}
-
-                            {/* Nouveau mot de passe */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Nouveau mot de passe</label>
                                 <div className="relative">
@@ -511,8 +575,6 @@ export default function UsersPage() {
                                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 dark:focus:ring-amber-900/30 outline-none text-sm text-gray-800 dark:text-white placeholder-gray-300 dark:placeholder-gray-500 bg-gray-50 dark:bg-gray-800 focus:bg-white dark:focus:bg-gray-700 transition" />
                                 </div>
                             </div>
-
-                            {/* Confirmer mot de passe */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Confirmer mot de passe</label>
                                 <div className="relative">
@@ -523,14 +585,136 @@ export default function UsersPage() {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Footer */}
                         <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700">
                             <button onClick={handleResetPassword} disabled={saving || !resetForm.password || !resetForm.password_confirmation}
                                 className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-amber-600/20">
                                 {saving ? 'En cours...' : 'Réinitialiser'}
                             </button>
                             <button onClick={() => setShowResetModal(false)}
+                                className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                                Annuler
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Modal Permissions ── */}
+            {showPermModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-violet-50 dark:bg-violet-900/30 rounded-xl flex items-center justify-center">
+                                    <Shield size={18} className="text-violet-600" />
+                                </div>
+                                <div>
+                                    <h2 className="font-bold text-gray-800 dark:text-white">Permissions — {permUser?.name}</h2>
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                                        Rôle : {ROLE_LABELS[permUser?.role] || permUser?.role}
+                                        <span className="ml-2 text-gray-300 dark:text-gray-600">•</span>
+                                        <span className="ml-2">Les overrides remplacent les droits du rôle</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowPermModal(false)} className="text-gray-300 dark:text-gray-500 hover:text-gray-500 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                                <XCircle size={20} />
+                            </button>
+                        </div>
+
+                        {/* Légende */}
+                        <div className="px-6 pt-4 pb-2 flex flex-wrap gap-3 flex-shrink-0">
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                <span className="w-6 h-6 rounded-lg bg-green-100 dark:bg-green-900/40 flex items-center justify-center"><Check size={12} className="text-green-600" /></span>
+                                Forcé actif
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                <span className="w-6 h-6 rounded-lg bg-red-100 dark:bg-red-900/40 flex items-center justify-center"><X size={12} className="text-red-600" /></span>
+                                Forcé inactif
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                <span className="w-6 h-6 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center"><Minus size={12} className="text-gray-400" /></span>
+                                Hérité du rôle
+                            </div>
+                        </div>
+
+                        {/* Body */}
+                        <div className="overflow-y-auto flex-1 px-6 pb-4">
+                            {permError && (
+                                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs rounded-lg px-3 py-2 mb-4 flex items-center gap-2">
+                                    <AlertCircle size={14} /> {permError}
+                                </div>
+                            )}
+
+                            {permLoading ? (
+                                <div className="py-12 text-center text-gray-400 dark:text-gray-500 text-sm">Chargement...</div>
+                            ) : (
+                                <div className="space-y-5 mt-2">
+                                    {Object.entries(permGroups).map(([module, perms]) => (
+                                        <div key={module}>
+                                            <div className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+                                                {MODULE_LABELS[module] || module}
+                                            </div>
+                                            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-gray-700">
+                                                {perms.map((perm) => {
+                                                    const isOverride = perm.state === 'granted' || perm.state === 'revoked';
+                                                    const isActive = perm.state === 'granted' || perm.state === 'inherited_granted';
+                                                    return (
+                                                        <div key={perm.name} className="flex items-center justify-between px-4 py-3">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{perm.display_name}</span>
+                                                                    {isOverride && (
+                                                                        <span className="text-xs px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 font-medium">override</span>
+                                                                    )}
+                                                                </div>
+                                                                {perm.description && (
+                                                                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{perm.description}</p>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                                                                {/* Bouton Reset si override */}
+                                                                {isOverride && (
+                                                                    <button onClick={() => resetPerm(module, perm.name)}
+                                                                        className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline">
+                                                                        reset
+                                                                    </button>
+                                                                )}
+                                                                {/* Toggle state */}
+                                                                <button onClick={() => togglePerm(module, perm.name)}
+                                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition ${
+                                                                        perm.state === 'granted'
+                                                                            ? 'bg-green-100 dark:bg-green-900/40 hover:bg-green-200'
+                                                                            : perm.state === 'revoked'
+                                                                            ? 'bg-red-100 dark:bg-red-900/40 hover:bg-red-200'
+                                                                            : isActive
+                                                                            ? 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 opacity-70'
+                                                                            : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200'
+                                                                    }`}>
+                                                                    {perm.state === 'granted' ? <Check size={14} className="text-green-600" />
+                                                                        : perm.state === 'revoked' ? <X size={14} className="text-red-600" />
+                                                                        : isActive ? <Check size={14} className="text-green-400" />
+                                                                        : <Minus size={14} className="text-gray-400" />}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+                            <button onClick={handleSavePerms} disabled={permSaving || permLoading}
+                                className="flex-1 bg-violet-600 hover:bg-violet-700 disabled:bg-violet-300 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-violet-600/20">
+                                {permSaving ? 'Sauvegarde...' : 'Enregistrer les permissions'}
+                            </button>
+                            <button onClick={() => setShowPermModal(false)}
                                 className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                                 Annuler
                             </button>

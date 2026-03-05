@@ -69,8 +69,14 @@ class RolePermissionController extends Controller
     {
         $currentUser = $request->user();
 
-        // Seul super_admin peut voir les permissions des autres
-        if (!$currentUser->isSuperAdmin()) {
+        if ($currentUser->isSuperAdmin()) {
+            // super_admin peut tout voir
+        } elseif ($currentUser->role === 'company_admin') {
+            // company_admin ne peut gérer que les users de sa propre entreprise (pas les autres admins)
+            if ($user->company_id !== $currentUser->company_id || $user->role === 'company_admin' || $user->role === 'super_admin') {
+                return response()->json(['message' => 'Accès refusé'], 403);
+            }
+        } else {
             return response()->json(['message' => 'Accès refusé'], 403);
         }
 
@@ -118,7 +124,13 @@ class RolePermissionController extends Controller
     {
         $currentUser = $request->user();
 
-        if (!$currentUser->isSuperAdmin()) {
+        if ($currentUser->isSuperAdmin()) {
+            // super_admin peut tout modifier
+        } elseif ($currentUser->role === 'company_admin') {
+            if ($user->company_id !== $currentUser->company_id || $user->role === 'company_admin' || $user->role === 'super_admin') {
+                return response()->json(['message' => 'Accès refusé'], 403);
+            }
+        } else {
             return response()->json(['message' => 'Accès refusé'], 403);
         }
 
