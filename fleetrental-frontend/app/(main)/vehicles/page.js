@@ -80,6 +80,17 @@ const EMPTY_FORM = {
     photo: '',
 };
 
+const ARABIC_LETTERS = ['أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
+const EMPTY_PLATE = { nums: '', letter: 'أ', region: '' };
+
+function parseMoroccanPlate(value) {
+    if (!value) return EMPTY_PLATE;
+    const clean = value.replace(/\s/g, '');
+    const match = clean.match(/^(\d{1,5})([\u0600-\u06FF])(\d{1,2})$/);
+    if (match) return { nums: match[1], letter: match[2], region: match[3] };
+    return EMPTY_PLATE;
+}
+
 export default function VehiclesPage() {
     const { vehicles, user: currentUser, loading, refreshVehicles, hasPermission } = useData();
 
@@ -102,7 +113,15 @@ export default function VehiclesPage() {
     const [showDocForm, setShowDocForm] = useState(false);
     const [docForm, setDocForm]         = useState(EMPTY_DOC_FORM);
     const [docSaving, setDocSaving]     = useState(false);
+    const [plateParts, setPlateParts]   = useState(EMPTY_PLATE);
     const router = useRouter();
+
+    useEffect(() => {
+        const { nums, letter, region } = plateParts;
+        if (nums || region) {
+            setForm(f => ({ ...f, registration_number: `${nums} ${letter} ${region}`.trim() }));
+        }
+    }, [plateParts]);
 
     const headers = () => ({
         'Content-Type': 'application/json',
@@ -154,6 +173,7 @@ export default function VehiclesPage() {
     };
 
     const handleEdit = (v) => {
+        setPlateParts(parseMoroccanPlate(v.registration_number));
         setForm({
             brand: v.brand || '',
             model: v.model || '',
@@ -174,6 +194,7 @@ export default function VehiclesPage() {
 
     const handleCreate = () => {
         setForm(EMPTY_FORM);
+        setPlateParts(EMPTY_PLATE);
         setEditingId(null);
         setError('');
         setShowModal(true);
@@ -663,8 +684,46 @@ export default function VehiclesPage() {
 
                                 <div>
                                     <label className="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Immatriculation</label>
-                                    <input type="text" value={form.registration_number} onChange={(e) => setForm({...form, registration_number: e.target.value})}
-                                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/40 outline-none text-sm text-gray-800 dark:text-gray-200" />
+                                    <div className="flex items-center gap-2">
+                                        {/* Numéro série */}
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength={5}
+                                            placeholder="12345"
+                                            value={plateParts.nums}
+                                            onChange={(e) => setPlateParts(p => ({ ...p, nums: e.target.value.replace(/\D/g, '').slice(0, 5) }))}
+                                            className="w-24 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/40 outline-none text-sm text-center font-mono text-gray-800 dark:text-gray-200"
+                                        />
+                                        <span className="text-gray-400 dark:text-gray-600 font-bold">|</span>
+                                        {/* Lettre arabe */}
+                                        <select
+                                            value={plateParts.letter}
+                                            onChange={(e) => setPlateParts(p => ({ ...p, letter: e.target.value }))}
+                                            className="w-16 px-2 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/40 outline-none text-base text-center text-gray-800 dark:text-gray-200 cursor-pointer"
+                                            style={{ direction: 'rtl' }}
+                                        >
+                                            {ARABIC_LETTERS.map(l => (
+                                                <option key={l} value={l}>{l}</option>
+                                            ))}
+                                        </select>
+                                        <span className="text-gray-400 dark:text-gray-600 font-bold">|</span>
+                                        {/* Numéro région (2 chiffres) */}
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength={2}
+                                            placeholder="46"
+                                            value={plateParts.region}
+                                            onChange={(e) => setPlateParts(p => ({ ...p, region: e.target.value.replace(/\D/g, '').slice(0, 2) }))}
+                                            className="w-16 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/40 outline-none text-sm text-center font-mono text-gray-800 dark:text-gray-200"
+                                        />
+                                    </div>
+                                    {form.registration_number && (
+                                        <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500 font-mono">
+                                            Plaque : <span className="text-gray-700 dark:text-gray-300">{form.registration_number}</span>
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
