@@ -91,6 +91,11 @@ function parseMoroccanPlate(value) {
     return EMPTY_PLATE;
 }
 
+function displayPlate(value) {
+    if (!value) return '—';
+    return value.replace(/\s*([\u0600-\u06FF])\s*/, ' | $1 | ');
+}
+
 export default function VehiclesPage() {
     const { vehicles, user: currentUser, loading, refreshVehicles, hasPermission } = useData();
 
@@ -473,7 +478,7 @@ export default function VehiclesPage() {
                                 <div className="p-4 flex-1 flex flex-col gap-1">
                                     <div className="font-bold text-gray-800 dark:text-gray-100 text-sm">{v.brand} {v.model}</div>
                                     <div className="text-xs text-gray-400 dark:text-gray-500">{v.year} {v.vehicle_type ? `· ${v.vehicle_type}` : ''}</div>
-                                    <div className="text-xs font-mono text-gray-500 dark:text-gray-400 mt-1">{v.registration_number}</div>
+                                    <div className="text-xs font-mono text-gray-500 dark:text-gray-400 mt-1 text-center tracking-wide">{displayPlate(v.registration_number)}</div>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-xs text-gray-400 dark:text-gray-500">{v.current_mileage?.toLocaleString()} km</span>
                                         {v.daily_rate && (
@@ -548,7 +553,7 @@ export default function VehiclesPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{v.vehicle_type || '—'}</td>
-                                        <td className="px-6 py-4 text-sm font-mono text-gray-800 dark:text-gray-200">{v.registration_number}</td>
+                                        <td className="px-6 py-4 text-sm font-mono text-gray-800 dark:text-gray-200 tracking-wide">{displayPlate(v.registration_number)}</td>
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{v.current_mileage?.toLocaleString()} km</td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border ${config.textColor} ${config.bgColor} ${config.borderColor}`}>
@@ -853,7 +858,7 @@ export default function VehiclesPage() {
                             </div>
                             <div className="flex items-center justify-between py-2.5 border-b border-gray-100 dark:border-gray-800">
                                 <span className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-bold">Immatriculation</span>
-                                <span className="text-sm font-mono text-gray-800 dark:text-gray-200">{detailVehicle.registration_number}</span>
+                                <span className="text-sm font-mono text-gray-800 dark:text-gray-200 tracking-wide">{displayPlate(detailVehicle.registration_number)}</span>
                             </div>
                             <div className="flex items-center justify-between py-2.5 border-b border-gray-100 dark:border-gray-800">
                                 <span className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-bold">VIN</span>
