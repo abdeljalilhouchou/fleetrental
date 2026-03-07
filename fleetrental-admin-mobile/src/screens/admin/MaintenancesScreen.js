@@ -60,6 +60,8 @@ export default function MaintenancesScreen() {
     const [showVehiclePicker, setShowVehiclePicker] = useState(false);
     const [showDatePicker,    setShowDatePicker]    = useState(false);
     const [tempDate,          setTempDate]          = useState(new Date());
+    const [detailItem,        setDetailItem]        = useState(null);
+    const [showDetail,        setShowDetail]        = useState(false);
 
     const loaded = useRef(false);
 
@@ -250,9 +252,12 @@ export default function MaintenancesScreen() {
                     <Text style={styles.description} numberOfLines={2}>{m.description}</Text>
                 ) : null}
 
-                {showActions && (
-                    <View style={styles.cardActions}>
-                        {showComplete && (
+                        <View style={styles.cardActions}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => { setDetailItem(m); setShowDetail(true); }}>
+                        <Ionicons name="eye-outline" size={14} color="#1e3a5f" />
+                        <Text style={[styles.actionBtnText, { color: '#1e3a5f' }]}>Détails</Text>
+                    </TouchableOpacity>
+                    {showComplete && (
                             <TouchableOpacity style={styles.actionBtn} onPress={() => handleComplete(m)}>
                                 <Ionicons name="checkmark-circle-outline" size={14} color="#16a34a" />
                                 <Text style={[styles.actionBtnText, { color: '#16a34a' }]}>Terminer</Text>
@@ -270,8 +275,7 @@ export default function MaintenancesScreen() {
                                 <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Supprimer</Text>
                             </TouchableOpacity>
                         )}
-                    </View>
-                )}
+                </View>
             </View>
         );
     };
@@ -326,6 +330,58 @@ export default function MaintenancesScreen() {
                     <Ionicons name="add" size={26} color="#fff" />
                 </TouchableOpacity>
             )}
+
+            {/* ── Modal Détails ── */}
+            <Modal visible={showDetail} animationType="slide" transparent onRequestClose={() => setShowDetail(false)}>
+                <View style={styles.detailOverlay}>
+                    <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowDetail(false)} />
+                    <View style={styles.detailSheet}>
+                        {detailItem && (() => {
+                            const s = STATUS_CONFIG[detailItem.status] || STATUS_CONFIG.scheduled;
+                            const typeLabel = MAINTENANCE_TYPES.find(t => t.value === (detailItem.type || detailItem.maintenance_type))?.label || detailItem.type || '—';
+                            return (
+                                <>
+                                    <View style={styles.detailHeader}>
+                                        <View style={[styles.detailIconBox, { backgroundColor: s.bg }]}>
+                                            <Ionicons name="construct-outline" size={20} color={s.color} />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.detailTitle}>{typeLabel}</Text>
+                                            <Text style={styles.detailSub}>{detailItem.vehicle?.brand} {detailItem.vehicle?.model}</Text>
+                                        </View>
+                                        <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
+                                            <Ionicons name={s.icon} size={11} color={s.color} />
+                                            <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={() => setShowDetail(false)} style={{ marginLeft: 10 }}>
+                                            <Ionicons name="close" size={22} color="#94a3b8" />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <ScrollView style={styles.detailBody} showsVerticalScrollIndicator={false}>
+                                        {[
+                                            { icon: 'car-outline',         label: 'Véhicule',      value: detailItem.vehicle ? `${detailItem.vehicle.brand} ${detailItem.vehicle.model}` : '—' },
+                                            { icon: 'barcode-outline',     label: 'Immat.',        value: detailItem.vehicle?.registration_number || '—' },
+                                            { icon: 'calendar-outline',    label: 'Date',          value: formatDate(detailItem.date || detailItem.scheduled_date) },
+                                            { icon: 'speedometer-outline', label: 'Kilométrage',   value: detailItem.mileage_at_maintenance ? `${Number(detailItem.mileage_at_maintenance).toLocaleString('fr-FR')} km` : '—' },
+                                            { icon: 'cash-outline',        label: 'Coût',          value: detailItem.cost ? `${Number(detailItem.cost).toFixed(0)} MAD` : '—' },
+                                            { icon: 'document-text-outline',label: 'Description',  value: detailItem.description || '—' },
+                                        ].map(row => (
+                                            <View key={row.label} style={styles.detailRow}>
+                                                <View style={styles.detailRowIcon}>
+                                                    <Ionicons name={row.icon} size={16} color="#64748b" />
+                                                </View>
+                                                <Text style={styles.detailRowLabel}>{row.label}</Text>
+                                                <Text style={[styles.detailRowValue, row.label === 'Description' && { flex: 1, textAlign: 'right' }]}>{row.value}</Text>
+                                            </View>
+                                        ))}
+                                        <View style={{ height: 20 }} />
+                                    </ScrollView>
+                                </>
+                            );
+                        })()}
+                    </View>
+                </View>
+            </Modal>
 
             {/* ── Modal Créer / Modifier ── */}
             <Modal visible={showModal} animationType="slide" presentationStyle="pageSheet">
@@ -626,4 +682,25 @@ const styles = StyleSheet.create({
     iosPickerTitle:  { fontSize: 15, fontWeight: '700', color: '#0f172a' },
     iosPickerCancel: { fontSize: 15, color: '#64748b' },
     iosPickerDone:   { fontSize: 15, color: '#1e3a5f', fontWeight: '700' },
+
+    detailOverlay:  { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+    detailSheet: {
+        backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        maxHeight: '75%', paddingBottom: 30,
+    },
+    detailHeader: {
+        flexDirection: 'row', alignItems: 'center', gap: 12,
+        padding: 20, borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
+    },
+    detailIconBox:  { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    detailTitle:    { fontSize: 16, fontWeight: '800', color: '#0f172a' },
+    detailSub:      { fontSize: 12, color: '#94a3b8', marginTop: 2 },
+    detailBody:     { paddingHorizontal: 20, paddingTop: 8 },
+    detailRow: {
+        flexDirection: 'row', alignItems: 'center', paddingVertical: 13,
+        borderBottomWidth: 1, borderBottomColor: '#f8fafc',
+    },
+    detailRowIcon:  { width: 28, alignItems: 'center' },
+    detailRowLabel: { flex: 1, fontSize: 13, color: '#64748b', marginLeft: 8 },
+    detailRowValue: { fontSize: 13, fontWeight: '700', color: '#0f172a' },
 });

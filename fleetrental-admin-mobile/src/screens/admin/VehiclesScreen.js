@@ -64,6 +64,8 @@ export default function VehiclesScreen() {
     const [form,          setForm]          = useState(EMPTY_FORM);
     const [saving,        setSaving]        = useState(false);
     const [formError,     setFormError]     = useState('');
+    const [detailItem,    setDetailItem]    = useState(null);
+    const [showDetail,    setShowDetail]    = useState(false);
 
     const loaded = useRef(false);
 
@@ -230,28 +232,30 @@ export default function VehiclesScreen() {
                     </View>
                 </View>
 
-                {showActions && (
-                    <View style={styles.cardActions}>
-                        {canChangeStatus && (
-                            <TouchableOpacity style={styles.actionBtn} onPress={() => changeStatus(v)}>
-                                <Ionicons name="swap-horizontal-outline" size={14} color="#2563eb" />
-                                <Text style={[styles.actionBtnText, { color: '#2563eb' }]}>Statut</Text>
-                            </TouchableOpacity>
-                        )}
-                        {canEdit && (
-                            <TouchableOpacity style={styles.actionBtn} onPress={() => openEdit(v)}>
-                                <Ionicons name="create-outline" size={14} color="#d97706" />
-                                <Text style={[styles.actionBtnText, { color: '#d97706' }]}>Modifier</Text>
-                            </TouchableOpacity>
-                        )}
-                        {canDelete && (
-                            <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(v)}>
-                                <Ionicons name="trash-outline" size={14} color="#dc2626" />
-                                <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Supprimer</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                )}
+                <View style={styles.cardActions}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => { setDetailItem(v); setShowDetail(true); }}>
+                        <Ionicons name="eye-outline" size={14} color="#1e3a5f" />
+                        <Text style={[styles.actionBtnText, { color: '#1e3a5f' }]}>Détails</Text>
+                    </TouchableOpacity>
+                    {canChangeStatus && (
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => changeStatus(v)}>
+                            <Ionicons name="swap-horizontal-outline" size={14} color="#2563eb" />
+                            <Text style={[styles.actionBtnText, { color: '#2563eb' }]}>Statut</Text>
+                        </TouchableOpacity>
+                    )}
+                    {canEdit && (
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => openEdit(v)}>
+                            <Ionicons name="create-outline" size={14} color="#d97706" />
+                            <Text style={[styles.actionBtnText, { color: '#d97706' }]}>Modifier</Text>
+                        </TouchableOpacity>
+                    )}
+                    {canDelete && (
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(v)}>
+                            <Ionicons name="trash-outline" size={14} color="#dc2626" />
+                            <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Supprimer</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
             </View>
         );
     };
@@ -308,6 +312,52 @@ export default function VehiclesScreen() {
                     <Ionicons name="add" size={26} color="#fff" />
                 </TouchableOpacity>
             )}
+
+            {/* ── Modal Détails ── */}
+            <Modal visible={showDetail} animationType="slide" transparent onRequestClose={() => setShowDetail(false)}>
+                <View style={styles.detailOverlay}>
+                    <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowDetail(false)} />
+                    <View style={styles.detailSheet}>
+                        {detailItem && (() => {
+                            const s = STATUS_CONFIG[detailItem.status] || STATUS_CONFIG.available;
+                            return (
+                                <>
+                                    <View style={styles.detailHeader}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.detailTitle}>{detailItem.brand} {detailItem.model}</Text>
+                                            <Text style={styles.detailSub}>{detailItem.vehicle_type} · {detailItem.year}</Text>
+                                        </View>
+                                        <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
+                                            <Ionicons name={s.icon} size={12} color={s.color} />
+                                            <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={() => setShowDetail(false)} style={{ marginLeft: 10 }}>
+                                            <Ionicons name="close" size={22} color="#94a3b8" />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <ScrollView style={styles.detailBody} showsVerticalScrollIndicator={false}>
+                                        {[
+                                            { icon: 'barcode-outline',      label: 'Immatriculation', value: displayPlate(detailItem.registration_number) },
+                                            { icon: 'speedometer-outline',  label: 'Kilométrage',     value: `${detailItem.current_mileage?.toLocaleString('fr-FR') || '—'} km` },
+                                            { icon: 'cash-outline',         label: 'Tarif/jour',      value: detailItem.daily_rate ? `${Number(detailItem.daily_rate).toFixed(0)} MAD` : '—' },
+                                            { icon: 'color-palette-outline',label: 'Couleur',         value: detailItem.color || '—' },
+                                            { icon: 'document-text-outline',label: 'Châssis / VIN',   value: detailItem.vin || '—' },
+                                        ].map(row => (
+                                            <View key={row.label} style={styles.detailRow}>
+                                                <View style={styles.detailRowIcon}>
+                                                    <Ionicons name={row.icon} size={16} color="#64748b" />
+                                                </View>
+                                                <Text style={styles.detailRowLabel}>{row.label}</Text>
+                                                <Text style={styles.detailRowValue}>{row.value}</Text>
+                                            </View>
+                                        ))}
+                                    </ScrollView>
+                                </>
+                            );
+                        })()}
+                    </View>
+                </View>
+            </Modal>
 
             {/* ── Modal Créer / Modifier ── */}
             <Modal visible={showModal} animationType="slide" presentationStyle="pageSheet">
@@ -583,6 +633,26 @@ const styles = StyleSheet.create({
     typeChipActive: { backgroundColor: '#1e3a5f', borderColor: '#1e3a5f' },
     typeText:       { fontSize: 13, fontWeight: '600', color: '#64748b' },
     typeTextActive: { color: '#fff' },
+
+    detailOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+    detailSheet: {
+        backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        maxHeight: '70%', paddingBottom: 30,
+    },
+    detailHeader: {
+        flexDirection: 'row', alignItems: 'center',
+        padding: 20, borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
+    },
+    detailTitle: { fontSize: 17, fontWeight: '800', color: '#0f172a' },
+    detailSub:   { fontSize: 12, color: '#94a3b8', marginTop: 2 },
+    detailBody:  { paddingHorizontal: 20, paddingTop: 8 },
+    detailRow: {
+        flexDirection: 'row', alignItems: 'center', paddingVertical: 13,
+        borderBottomWidth: 1, borderBottomColor: '#f8fafc',
+    },
+    detailRowIcon:  { width: 28, alignItems: 'center' },
+    detailRowLabel: { flex: 1, fontSize: 13, color: '#64748b', marginLeft: 8 },
+    detailRowValue: { fontSize: 13, fontWeight: '700', color: '#0f172a' },
 
     saveBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,

@@ -58,6 +58,10 @@ export default function RentalsScreen() {
     const [paidAmount, setPaidAmount] = useState('');
     const [actionSaving, setActionSaving] = useState(false);
 
+    // Modal détails
+    const [detailItem, setDetailItem] = useState(null);
+    const [showDetail, setShowDetail] = useState(false);
+
     const loaded = useRef(false);
 
     const loadData = async (isRefresh = false) => {
@@ -248,8 +252,12 @@ export default function RentalsScreen() {
                     ) : null}
                 </View>
 
-                {isOngoing && (
-                    <View style={styles.cardActions}>
+                <View style={styles.cardActions}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => { setDetailItem(r); setShowDetail(true); }}>
+                        <Ionicons name="eye-outline" size={14} color="#1e3a5f" />
+                        <Text style={[styles.actionBtnText, { color: '#1e3a5f' }]}>Détails</Text>
+                    </TouchableOpacity>
+                    {isOngoing && (<>
                         <TouchableOpacity style={styles.actionBtn} onPress={() => openActionModal(r)}>
                             <Ionicons name="checkmark-circle-outline" size={14} color="#16a34a" />
                             <Text style={[styles.actionBtnText, { color: '#16a34a' }]}>Terminer</Text>
@@ -278,8 +286,8 @@ export default function RentalsScreen() {
                             <Ionicons name="close-circle-outline" size={14} color="#dc2626" />
                             <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Annuler</Text>
                         </TouchableOpacity>
-                    </View>
-                )}
+                    </>)}
+                </View>
             </View>
         );
     };
@@ -334,6 +342,67 @@ export default function RentalsScreen() {
                     </View>
                 }
             />
+
+            {/* ── Modal Détails ── */}
+            <Modal visible={showDetail} animationType="slide" transparent onRequestClose={() => setShowDetail(false)}>
+                <View style={styles.detailOverlay}>
+                    <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowDetail(false)} />
+                    <View style={styles.detailSheet}>
+                        {detailItem && (() => {
+                            const s = STATUS_CONFIG[detailItem.status] || STATUS_CONFIG.pending;
+                            const clientName = detailItem.customer_name || detailItem.client_name || '—';
+                            const totalDays = detailItem.start_date && detailItem.end_date
+                                ? Math.ceil((new Date(detailItem.end_date) - new Date(detailItem.start_date)) / 86400000)
+                                : null;
+                            return (
+                                <>
+                                    <View style={styles.detailHeader}>
+                                        <View style={[styles.clientIcon, { backgroundColor: s.bg }]}>
+                                            <Ionicons name="person-outline" size={18} color={s.color} />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.detailTitle}>{clientName}</Text>
+                                            <Text style={styles.detailSub}>{detailItem.vehicle?.brand} {detailItem.vehicle?.model}</Text>
+                                        </View>
+                                        <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
+                                            <Ionicons name={s.icon} size={11} color={s.color} />
+                                            <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={() => setShowDetail(false)} style={{ marginLeft: 10 }}>
+                                            <Ionicons name="close" size={22} color="#94a3b8" />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <ScrollView style={styles.detailBody} showsVerticalScrollIndicator={false}>
+                                        {[
+                                            { icon: 'call-outline',        label: 'Téléphone',     value: detailItem.customer_phone || '—' },
+                                            { icon: 'mail-outline',        label: 'Email',         value: detailItem.customer_email || '—' },
+                                            { icon: 'car-outline',         label: 'Véhicule',      value: detailItem.vehicle ? `${detailItem.vehicle.brand} ${detailItem.vehicle.model}` : '—' },
+                                            { icon: 'barcode-outline',     label: 'Immat.',        value: detailItem.vehicle?.registration_number || '—' },
+                                            { icon: 'calendar-outline',    label: 'Début',         value: formatDate(detailItem.start_date) },
+                                            { icon: 'calendar-outline',    label: 'Fin',           value: formatDate(detailItem.end_date) },
+                                            { icon: 'time-outline',        label: 'Durée',         value: totalDays ? `${totalDays} jours` : '—' },
+                                            { icon: 'speedometer-outline', label: 'Km départ',     value: detailItem.start_mileage ? `${Number(detailItem.start_mileage).toLocaleString('fr-FR')} km` : '—' },
+                                            { icon: 'cash-outline',        label: 'Tarif/jour',    value: detailItem.daily_rate ? `${Number(detailItem.daily_rate).toFixed(0)} MAD` : '—' },
+                                            { icon: 'shield-outline',      label: 'Caution',       value: detailItem.deposit_amount != null ? `${Number(detailItem.deposit_amount).toFixed(0)} MAD` : '—' },
+                                            { icon: 'wallet-outline',      label: 'Total',         value: detailItem.total_price ? `${Number(detailItem.total_price).toFixed(0)} MAD` : '—' },
+                                            { icon: 'document-text-outline',label: 'Notes',        value: detailItem.notes || '—' },
+                                        ].map(row => (
+                                            <View key={row.label} style={styles.detailRow}>
+                                                <View style={styles.detailRowIcon}>
+                                                    <Ionicons name={row.icon} size={16} color="#64748b" />
+                                                </View>
+                                                <Text style={styles.detailRowLabel}>{row.label}</Text>
+                                                <Text style={styles.detailRowValue}>{row.value}</Text>
+                                            </View>
+                                        ))}
+                                        <View style={{ height: 20 }} />
+                                    </ScrollView>
+                                </>
+                            );
+                        })()}
+                    </View>
+                </View>
+            </Modal>
 
             {/* ── Modal Terminer / Annuler ── */}
             <Modal
@@ -828,6 +897,26 @@ const styles = StyleSheet.create({
         borderWidth: 1.5, borderColor: '#dc2626', borderRadius: 12, paddingVertical: 13,
     },
     actionBtnCancelText: { color: '#dc2626', fontWeight: '700', fontSize: 14 },
+
+    detailOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+    detailSheet: {
+        backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        maxHeight: '80%', paddingBottom: 30,
+    },
+    detailHeader: {
+        flexDirection: 'row', alignItems: 'center', gap: 10,
+        padding: 20, borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
+    },
+    detailTitle:    { fontSize: 16, fontWeight: '800', color: '#0f172a' },
+    detailSub:      { fontSize: 12, color: '#94a3b8', marginTop: 2 },
+    detailBody:     { paddingHorizontal: 20, paddingTop: 8 },
+    detailRow: {
+        flexDirection: 'row', alignItems: 'center', paddingVertical: 12,
+        borderBottomWidth: 1, borderBottomColor: '#f8fafc',
+    },
+    detailRowIcon:  { width: 28, alignItems: 'center' },
+    detailRowLabel: { flex: 1, fontSize: 13, color: '#64748b', marginLeft: 8 },
+    detailRowValue: { fontSize: 13, fontWeight: '700', color: '#0f172a', maxWidth: '50%', textAlign: 'right' },
     actionBtnComplete: {
         flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
         backgroundColor: '#16a34a', borderRadius: 12, paddingVertical: 13,
