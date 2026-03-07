@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useContext } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
@@ -8,6 +8,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { getVehicles, createVehicle, updateVehicleStatus } from '../../api';
 import StatsFilterBar from '../../components/StatsFilterBar';
+import { AuthContext } from '../../context/AuthContext';
 
 const STATUS_CONFIG = {
     available:      { label: 'Disponible',  color: '#16a34a', bg: '#f0fdf4', icon: 'checkmark-circle' },
@@ -40,6 +41,10 @@ const EMPTY_FORM = {
 };
 
 export default function VehiclesScreen() {
+    const { hasPermission } = useContext(AuthContext);
+    const canCreate = hasPermission('create_vehicles');
+    const canChangeStatus = hasPermission('change_vehicle_status');
+
     const [vehicles,   setVehicles]   = useState([]);
     const [loading,    setLoading]    = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -200,9 +205,11 @@ export default function VehiclesScreen() {
                         </TouchableOpacity>
                     ) : null}
                 </View>
-                <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
-                    <Ionicons name="add" size={22} color="#fff" />
-                </TouchableOpacity>
+                {canCreate && (
+                    <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
+                        <Ionicons name="add" size={22} color="#fff" />
+                    </TouchableOpacity>
+                )}
             </View>
 
             {/* Filtres stats */}
@@ -220,9 +227,11 @@ export default function VehiclesScreen() {
                     <View style={styles.empty}>
                         <Ionicons name="car-outline" size={48} color="#cbd5e1" />
                         <Text style={styles.emptyText}>Aucun véhicule trouvé</Text>
-                        <TouchableOpacity style={styles.emptyBtn} onPress={openCreate}>
-                            <Text style={styles.emptyBtnText}>Ajouter un véhicule</Text>
-                        </TouchableOpacity>
+                        {canCreate && (
+                            <TouchableOpacity style={styles.emptyBtn} onPress={openCreate}>
+                                <Text style={styles.emptyBtnText}>Ajouter un véhicule</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 }
             />

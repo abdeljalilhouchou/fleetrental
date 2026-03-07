@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useContext } from 'react';
 import {
     View, Text, StyleSheet, FlatList, RefreshControl,
     ActivityIndicator, SafeAreaView, TouchableOpacity,
@@ -10,6 +10,7 @@ import {
     getReminders, createReminder, updateReminder, deleteReminder,
     renewReminder, getVehicles,
 } from '../../api';
+import { AuthContext } from '../../context/AuthContext';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -333,6 +334,9 @@ function RenewModal({ visible, reminder, onClose, onRenewed }) {
 // ── Écran principal ────────────────────────────────────────────────────────────
 
 export default function RemindersScreen() {
+    const { hasPermission } = useContext(AuthContext);
+    const canManage = hasPermission('manage_reminders');
+
     const [reminders,  setReminders]  = useState([]);
     const [vehicles,   setVehicles]   = useState([]);
     const [loading,    setLoading]    = useState(true);
@@ -437,29 +441,31 @@ export default function RemindersScreen() {
                 </View>
 
                 {/* Actions */}
-                <View style={styles.cardActions}>
-                    <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={() => { setRenewReminderState(r); setRenewVisible(true); }}
-                    >
-                        <Ionicons name="refresh-outline" size={14} color="#16a34a" />
-                        <Text style={[styles.actionBtnText, { color: '#16a34a' }]}>Renouveler</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={() => { setEditReminder(r); setFormVisible(true); }}
-                    >
-                        <Ionicons name="create-outline" size={14} color="#2563eb" />
-                        <Text style={[styles.actionBtnText, { color: '#2563eb' }]}>Modifier</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={() => handleDelete(r)}
-                    >
-                        <Ionicons name="trash-outline" size={14} color="#dc2626" />
-                        <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Supprimer</Text>
-                    </TouchableOpacity>
-                </View>
+                {canManage && (
+                    <View style={styles.cardActions}>
+                        <TouchableOpacity
+                            style={styles.actionBtn}
+                            onPress={() => { setRenewReminderState(r); setRenewVisible(true); }}
+                        >
+                            <Ionicons name="refresh-outline" size={14} color="#16a34a" />
+                            <Text style={[styles.actionBtnText, { color: '#16a34a' }]}>Renouveler</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.actionBtn}
+                            onPress={() => { setEditReminder(r); setFormVisible(true); }}
+                        >
+                            <Ionicons name="create-outline" size={14} color="#2563eb" />
+                            <Text style={[styles.actionBtnText, { color: '#2563eb' }]}>Modifier</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.actionBtn}
+                            onPress={() => handleDelete(r)}
+                        >
+                            <Ionicons name="trash-outline" size={14} color="#dc2626" />
+                            <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Supprimer</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
         );
     };
@@ -505,13 +511,15 @@ export default function RemindersScreen() {
             />
 
             {/* FAB Créer */}
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => { setEditReminder(null); setFormVisible(true); }}
-                activeOpacity={0.85}
-            >
-                <Ionicons name="add" size={26} color="#fff" />
-            </TouchableOpacity>
+            {canManage && (
+                <TouchableOpacity
+                    style={styles.fab}
+                    onPress={() => { setEditReminder(null); setFormVisible(true); }}
+                    activeOpacity={0.85}
+                >
+                    <Ionicons name="add" size={26} color="#fff" />
+                </TouchableOpacity>
+            )}
 
             {/* Modals */}
             <ReminderFormModal
