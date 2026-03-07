@@ -40,6 +40,7 @@ class VehicleController extends Controller
             'status' => 'required|in:available,rented,maintenance,out_of_service',
             'vehicle_type' => 'nullable|string|max:100',
             'daily_rate' => 'nullable|numeric|min:0',
+            'color' => 'nullable|string|max:100',
             'photo' => 'nullable|string|max:500',
         ]);
 
@@ -71,6 +72,7 @@ class VehicleController extends Controller
             'status' => ['required', Rule::in(['available', 'rented', 'maintenance', 'out_of_service', 'reserved'])],
             'vehicle_type' => ['required', 'string', 'max:255'],
             'daily_rate' => ['nullable', 'numeric', 'min:0'],
+            'color' => ['nullable', 'string', 'max:100'],
             'photo' => ['nullable', 'string'],
         ]);
 

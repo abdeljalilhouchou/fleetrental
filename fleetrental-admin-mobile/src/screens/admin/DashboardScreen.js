@@ -9,16 +9,17 @@ import { getVehicles, getRentals, getMaintenances } from '../../api';
 import { AuthContext } from '../../context/AuthContext';
 
 const ROLE_LABELS = {
-    company_admin:  'Company Admin',
-    fleet_manager:  'Gestionnaire de flotte',
-    rental_agent:   'Agent de location',
-    mechanic:       'Mécanicien',
-    employee:       'Employé',
-    super_admin:    'Super Admin',
+    company_admin: 'Administrateur',
+    fleet_manager: 'Gestionnaire de flotte',
+    rental_agent:  'Agent de location',
+    mechanic:      'Mécanicien',
+    employee:      'Employé',
+    super_admin:   'Super Admin',
 };
 
+
 export default function DashboardScreen({ navigation }) {
-    const { user, signOut } = useContext(AuthContext);
+    const { user, signOut, hasPermission } = useContext(AuthContext);
 
     const [vehicles,     setVehicles]     = useState([]);
     const [rentals,      setRentals]      = useState([]);
@@ -141,57 +142,69 @@ export default function DashboardScreen({ navigation }) {
                     ))}
                 </View>
 
-                {/* Raccourcis */}
-                <Text style={styles.sectionTitle}>Accès rapide</Text>
-                <View style={styles.quickRow}>
-                    {[
-                        { label: 'Véhicules', icon: 'car-sport', tab: 'Vehicles' },
-                        { label: 'Locations',  icon: 'key',       tab: 'Rentals' },
-                        { label: 'Maintenance',icon: 'construct', tab: 'Maintenances' },
-                    ].map((q, i) => (
-                        <TouchableOpacity
-                            key={i}
-                            style={styles.quickCard}
-                            onPress={() => navigation.navigate(q.tab)}
-                            activeOpacity={0.8}
-                        >
-                            <Ionicons name={q.icon} size={26} color="#2563eb" />
-                            <Text style={styles.quickLabel}>{q.label}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                {/* Véhicules récents */}
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Véhicules récents</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Vehicles')}>
-                        <Text style={styles.seeAll}>Voir tous</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {recentVehicles.map(v => {
-                    const s = STATUS_V[v.status] || STATUS_V.available;
-                    return (
-                        <View key={v.id} style={styles.vehicleRow}>
-                            <View style={styles.vehicleIcon}>
-                                <Ionicons name="car-outline" size={20} color="#2563eb" />
-                            </View>
-                            <View style={styles.vehicleInfo}>
-                                <Text style={styles.vehicleName}>{v.brand} {v.model} {v.year}</Text>
-                                <Text style={styles.vehiclePlate}>{displayPlate(v.registration_number)}</Text>
-                            </View>
-                            <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
-                                <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
-                            </View>
+                {/* Raccourcis — filtrés selon les permissions */}
+                {[
+                    { label: 'Véhicules',  icon: 'car-sport', tab: 'Vehicles',     perm: 'view_vehicles' },
+                    { label: 'Locations',  icon: 'key',        tab: 'Rentals',      perm: 'view_rentals' },
+                    { label: 'Maintenance',icon: 'construct',  tab: 'Maintenances', perm: 'view_maintenances' },
+                ].filter(q => hasPermission(q.perm)).length > 0 && (
+                    <>
+                        <Text style={styles.sectionTitle}>Accès rapide</Text>
+                        <View style={styles.quickRow}>
+                            {[
+                                { label: 'Véhicules',  icon: 'car-sport', tab: 'Vehicles',     perm: 'view_vehicles' },
+                                { label: 'Locations',  icon: 'key',        tab: 'Rentals',      perm: 'view_rentals' },
+                                { label: 'Maintenance',icon: 'construct',  tab: 'Maintenances', perm: 'view_maintenances' },
+                            ].filter(q => hasPermission(q.perm)).map((q, i) => (
+                                <TouchableOpacity
+                                    key={i}
+                                    style={styles.quickCard}
+                                    onPress={() => navigation.navigate(q.tab)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Ionicons name={q.icon} size={26} color="#2563eb" />
+                                    <Text style={styles.quickLabel}>{q.label}</Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
-                    );
-                })}
+                    </>
+                )}
 
-                {recentVehicles.length === 0 && (
-                    <View style={styles.emptyBox}>
-                        <Ionicons name="car-outline" size={36} color="#cbd5e1" />
-                        <Text style={styles.emptyText}>Aucun véhicule</Text>
-                    </View>
+                {/* Véhicules récents — uniquement si permission view_vehicles */}
+                {hasPermission('view_vehicles') && (
+                    <>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>Véhicules récents</Text>
+                            <TouchableOpacity onPress={() => navigation.navigate('Vehicles')}>
+                                <Text style={styles.seeAll}>Voir tous</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {recentVehicles.map(v => {
+                            const s = STATUS_V[v.status] || STATUS_V.available;
+                            return (
+                                <View key={v.id} style={styles.vehicleRow}>
+                                    <View style={styles.vehicleIcon}>
+                                        <Ionicons name="car-outline" size={20} color="#2563eb" />
+                                    </View>
+                                    <View style={styles.vehicleInfo}>
+                                        <Text style={styles.vehicleName}>{v.brand} {v.model} {v.year}</Text>
+                                        <Text style={styles.vehiclePlate}>{displayPlate(v.registration_number)}</Text>
+                                    </View>
+                                    <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
+                                        <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
+                                    </View>
+                                </View>
+                            );
+                        })}
+
+                        {recentVehicles.length === 0 && (
+                            <View style={styles.emptyBox}>
+                                <Ionicons name="car-outline" size={36} color="#cbd5e1" />
+                                <Text style={styles.emptyText}>Aucun véhicule</Text>
+                            </View>
+                        )}
+                    </>
                 )}
 
             </ScrollView>

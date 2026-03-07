@@ -25,7 +25,7 @@ export default function LoginScreen() {
         setError('');
         try {
             const data = await adminLogin(email.trim(), password);
-            signIn(data.token, data.user);
+            signIn(data.token, data.user, data.permissions || []);
         } catch (e) {
             setError(e.message || 'Identifiants incorrects.');
         } finally {
@@ -48,7 +48,7 @@ export default function LoginScreen() {
                         style={styles.logoImage}
                         resizeMode="contain"
                     />
-                    <Text style={styles.logoSub}>Interface d'administration</Text>
+                    <Text style={styles.logoSub}>Accès à votre espace de travail</Text>
                 </View>
 
                 {/* Formulaire */}
@@ -118,7 +118,7 @@ export default function LoginScreen() {
                 </View>
 
                 <Text style={styles.footer}>
-                    Réservé aux administrateurs et gestionnaires de flotte
+                    Connexion sécurisée — FleetRental
                 </Text>
 
             </ScrollView>

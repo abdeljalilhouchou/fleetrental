@@ -41,28 +41,46 @@ class AuthController extends Controller
         };
 
         return response()->json([
-            'token'      => $token,
-            'user'       => $user->load('company'),
-            'redirect'   => $redirect,
-            'expires_in' => $rememberMe ? 30 * 24 * 3600 : 24 * 3600, // secondes
+            'token'       => $token,
+            'user'        => $user->load('company'),
+            'permissions' => $this->getUserPermissions($user),
+            'redirect'    => $redirect,
+            'expires_in'  => $rememberMe ? 30 * 24 * 3600 : 24 * 3600,
         ]);
+    }
+
+    private function getUserPermissions($user): array
+    {
+        // Admins ont toutes les permissions
+        if ($user->isSuperAdmin() || $user->isCompanyAdmin()) {
+            return \App\Models\Permission::pluck('name')->toArray();
+        }
+
+        // 1) Permissions du rôle (1 seule requête avec eager loading)
+        $role = $user->roleModel()->with('permissions')->first();
+        $rolePerms = $role ? $role->permissions->pluck('name') : collect();
+
+        // 2) Overrides individuels (1 seule requête)
+        $overrides = $user->permissionOverrides()->with('permission')->get();
+
+        // Appliquer les overrides
+        $result = $rolePerms;
+        foreach ($overrides as $override) {
+            if (!$override->permission) continue;
+            $name = $override->permission->name;
+            if ($override->granted) {
+                $result = $result->push($name);
+            } else {
+                $result = $result->reject(fn($n) => $n === $name);
+            }
+        }
+
+        return $result->unique()->values()->toArray();
     }
 
     public function myPermissions(Request $request)
     {
-        $user = $request->user();
-
-        // super_admin a toutes les permissions
-        if ($user->isSuperAdmin()) {
-            $all = \App\Models\Permission::pluck('name');
-            return response()->json($all);
-        }
-
-        // Récupérer toutes les permissions et filtrer celles accordées
-        $all = \App\Models\Permission::pluck('name');
-        $granted = $all->filter(fn($name) => $user->hasPermission($name))->values();
-
-        return response()->json($granted);
+        return response()->json($this->getUserPermissions($request->user()));
     }
 
     public function logout(Request $request)
@@ -77,17 +95,18 @@ class AuthController extends Controller
         $user = $request->user()->load('company');
 
         return response()->json([
-            'id'         => $user->id,
-            'name'       => $user->name,
-            'email'      => $user->email,
-            'role'       => $user->role,
-            'company'    => $user->company,
-            'phone'      => $user->phone,
-            'address'    => $user->address,
-            'birthdate'  => $user->birthdate,
-            'avatar'     => $user->avatar,
-            'theme'      => $user->theme,
-            'language'   => $user->language,
+            'id'          => $user->id,
+            'name'        => $user->name,
+            'email'       => $user->email,
+            'role'        => $user->role,
+            'company'     => $user->company,
+            'phone'       => $user->phone,
+            'address'     => $user->address,
+            'birthdate'   => $user->birthdate,
+            'avatar'      => $user->avatar,
+            'theme'       => $user->theme,
+            'language'    => $user->language,
+            'permissions' => $this->getUserPermissions($user),
             'notifications_email'       => $user->notifications_email,
             'notifications_maintenance' => $user->notifications_maintenance,
             'notifications_rental'      => $user->notifications_rental,

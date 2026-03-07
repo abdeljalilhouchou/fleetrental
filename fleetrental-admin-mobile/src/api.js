@@ -53,6 +53,20 @@ export async function getMe() {
     return request('/me');
 }
 
+// ── Stats / Finance / Rappels / Réservations / GPS ────────────────────────────
+
+export const getStats       = ()       => request('/stats');
+export const getFinances    = (period = 'year') => request(`/finances?period=${period}`);
+export const getReminders      = ()         => request('/reminders');
+export const createReminder    = (data)     => request('/reminders', { method: 'POST', body: JSON.stringify(data) });
+export const updateReminder    = (id, data) => request(`/reminders/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteReminder    = (id)       => request(`/reminders/${id}`, { method: 'DELETE' });
+export const renewReminder     = (id, data) => request(`/reminders/${id}/renew`, { method: 'POST', body: JSON.stringify(data) });
+export const getReservations= ()       => request('/reservations');
+export const confirmReservation = (id) => request(`/reservations/${id}/confirm`, { method: 'POST' });
+export const rejectReservation  = (id) => request(`/reservations/${id}/reject`,  { method: 'POST' });
+export const getGpsLocations    = ()   => request('/gps/active-locations');
+
 // ── Véhicules ─────────────────────────────────────────────────────────────────
 
 export const getVehicles = () => request('/vehicles');
@@ -119,8 +133,20 @@ export const changePassword = (data) =>
 
 export const getUsers = () => request('/users');
 
-export const updateUserRole = (id, role) =>
-    request(`/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) });
+export const createUser = (data) =>
+    request('/users', { method: 'POST', body: JSON.stringify(data) });
 
-export const updateUserPermissions = (id, permissions) =>
-    request(`/users/${id}/permissions`, { method: 'PUT', body: JSON.stringify({ permissions }) });
+export const updateUser = (id, data) =>
+    request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+
+export const deleteUser = (id) =>
+    request(`/users/${id}`, { method: 'DELETE' });
+
+export const resetUserPassword = (id, password) =>
+    request(`/users/${id}/reset-password`, { method: 'PUT', body: JSON.stringify({ password }) });
+
+export const getUserPermissions = (id) =>
+    request(`/users/${id}/permissions`);
+
+export const updateUserPermissions = (id, overrides) =>
+    request(`/users/${id}/permissions`, { method: 'PUT', body: JSON.stringify({ overrides }) });

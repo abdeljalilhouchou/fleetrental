@@ -19,6 +19,7 @@ class Vehicle extends Model
         'status',
         'vehicle_type',       // ← Doit être là
         'daily_rate',         // ← Doit être là
+        'color',
         'photo',
     ];
 

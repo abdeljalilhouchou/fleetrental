@@ -36,7 +36,7 @@ const EMPTY_FORM = {
     brand: '', model: '', year: String(new Date().getFullYear()),
     plate_nums: '', plate_letter: 'أ', plate_region: '',
     current_mileage: '0', vehicle_type: 'Voiture',
-    daily_rate: '', color: '', status: 'available',
+    daily_rate: '', color: '', vin: '', status: 'available',
 };
 
 export default function VehiclesScreen() {
@@ -91,6 +91,7 @@ export default function VehiclesScreen() {
                 model:               form.model.trim(),
                 year:                parseInt(form.year) || new Date().getFullYear(),
                 registration_number,
+                vin:                 form.vin.trim() || null,
                 current_mileage:     parseInt(form.current_mileage) || 0,
                 vehicle_type:        form.vehicle_type,
                 daily_rate:          form.daily_rate ? parseFloat(form.daily_rate) : null,
@@ -310,6 +311,20 @@ export default function VehiclesScreen() {
                                 <Text style={styles.platePreview}>
                                     {form.plate_nums || '?'} | {form.plate_letter} | {form.plate_region || '?'}
                                 </Text>
+                            </View>
+
+                            {/* VIN */}
+                            <View style={styles.fieldWrap}>
+                                <Text style={styles.label}>N° de châssis / VIN (optionnel)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={form.vin}
+                                    onChangeText={v => setForm(p => ({...p, vin: v.toUpperCase()}))}
+                                    placeholder="ex: VF1AA000012345678"
+                                    placeholderTextColor="#94a3b8"
+                                    autoCapitalize="characters"
+                                    maxLength={17}
+                                />
                             </View>
 
                             {/* Kilométrage + Tarif */}
