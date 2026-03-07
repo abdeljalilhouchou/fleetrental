@@ -387,10 +387,10 @@ export default function RentalsScreen() {
                         <View style={{ width: 60 }} />
                     </View>
                     <FlatList
-                        data={vehicles}
+                        data={vehicles.filter(v => v.status === 'available')}
                         keyExtractor={v => String(v.id)}
                         contentContainerStyle={{ padding: 16 }}
-                        ListHeaderComponent={<Text style={styles.pickerHint}>{vehicles.length} véhicule{vehicles.length !== 1 ? 's' : ''}</Text>}
+                        ListHeaderComponent={<Text style={styles.pickerHint}>{vehicles.filter(v => v.status === 'available').length} véhicule{vehicles.filter(v => v.status === 'available').length !== 1 ? 's' : ''} disponible{vehicles.filter(v => v.status === 'available').length !== 1 ? 's' : ''}</Text>}
                         renderItem={({ item: v }) => (
                             <TouchableOpacity
                                 style={[styles.vehiclePickerRow, String(form.vehicle_id) === String(v.id) && styles.vehiclePickerRowActive]}
@@ -409,9 +409,7 @@ export default function RentalsScreen() {
                                 </View>
                                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
                                     {v.daily_rate ? <Text style={styles.vehiclePickerRate}>{Number(v.daily_rate).toFixed(0)} MAD/j</Text> : null}
-                                    <Text style={[styles.vehiclePickerStatus, { color: v.status === 'available' ? '#16a34a' : '#d97706' }]}>
-                                        {v.status === 'available' ? 'Disponible' : v.status === 'rented' ? 'Louée' : 'Occupé'}
-                                    </Text>
+                                    <Text style={[styles.vehiclePickerStatus, { color: '#16a34a' }]}>Disponible</Text>
                                 </View>
                                 {String(form.vehicle_id) === String(v.id)
                                     ? <Ionicons name="checkmark-circle" size={20} color="#1e3a5f" style={{ marginLeft: 8 }} />
