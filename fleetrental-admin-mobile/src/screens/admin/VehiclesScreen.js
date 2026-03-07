@@ -6,7 +6,7 @@ import {
     Alert, Modal, ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getVehicles, createVehicle, updateVehicleStatus } from '../../api';
+import { getVehicles, createVehicle, updateVehicle, deleteVehicle, updateVehicleStatus } from '../../api';
 import StatsFilterBar from '../../components/StatsFilterBar';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -25,12 +25,18 @@ const STATUS_OPTIONS = [
 ];
 
 const VEHICLE_TYPES = ['Voiture', 'SUV', 'Utilitaire', 'Camion', 'Moto', 'Minibus', 'Autre'];
-
 const ARABIC_LETTERS = ['أ','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'];
 
 function displayPlate(value) {
     if (!value) return '—';
     return value.replace(/\s*([\u0600-\u06FF])\s*/, ' | $1 | ');
+}
+
+function parsePlate(reg) {
+    if (!reg) return { plate_nums: '', plate_letter: 'أ', plate_region: '' };
+    const m = reg.match(/^(\d+)\s+([\u0600-\u06FF])\s+(\d+)$/);
+    if (m) return { plate_nums: m[1], plate_letter: m[2], plate_region: m[3] };
+    return { plate_nums: reg, plate_letter: 'أ', plate_region: '' };
 }
 
 const EMPTY_FORM = {
@@ -42,7 +48,9 @@ const EMPTY_FORM = {
 
 export default function VehiclesScreen() {
     const { hasPermission } = useContext(AuthContext);
-    const canCreate = hasPermission('create_vehicles');
+    const canCreate       = hasPermission('create_vehicles');
+    const canEdit         = hasPermission('edit_vehicles');
+    const canDelete       = hasPermission('delete_vehicles');
     const canChangeStatus = hasPermission('change_vehicle_status');
 
     const [vehicles,   setVehicles]   = useState([]);
@@ -51,11 +59,11 @@ export default function VehiclesScreen() {
     const [search,     setSearch]     = useState('');
     const [filter,     setFilter]     = useState('all');
 
-    // Modal création
-    const [showModal,  setShowModal]  = useState(false);
-    const [form,       setForm]       = useState(EMPTY_FORM);
-    const [saving,     setSaving]     = useState(false);
-    const [formError,  setFormError]  = useState('');
+    const [showModal,     setShowModal]     = useState(false);
+    const [editingId,     setEditingId]     = useState(null); // null = create
+    const [form,          setForm]          = useState(EMPTY_FORM);
+    const [saving,        setSaving]        = useState(false);
+    const [formError,     setFormError]     = useState('');
 
     const loaded = useRef(false);
 
@@ -77,39 +85,88 @@ export default function VehiclesScreen() {
     useFocusEffect(useCallback(() => { loadVehicles(); }, []));
 
     const openCreate = () => {
+        setEditingId(null);
         setForm(EMPTY_FORM);
         setFormError('');
         setShowModal(true);
     };
 
-    const handleCreate = async () => {
+    const openEdit = (v) => {
+        setEditingId(v.id);
+        const parsed = parsePlate(v.registration_number);
+        setForm({
+            brand:           v.brand || '',
+            model:           v.model || '',
+            year:            String(v.year || new Date().getFullYear()),
+            plate_nums:      parsed.plate_nums,
+            plate_letter:    parsed.plate_letter,
+            plate_region:    parsed.plate_region,
+            current_mileage: String(v.current_mileage || '0'),
+            vehicle_type:    v.vehicle_type || 'Voiture',
+            daily_rate:      v.daily_rate ? String(v.daily_rate) : '',
+            color:           v.color || '',
+            vin:             v.vin || '',
+            status:          v.status || 'available',
+        });
+        setFormError('');
+        setShowModal(true);
+    };
+
+    const handleSave = async () => {
         if (!form.brand.trim() || !form.model.trim() || !form.plate_nums.trim() || !form.plate_region.trim()) {
             setFormError('Marque, modèle et immatriculation sont obligatoires.');
             return;
         }
         const registration_number = `${form.plate_nums} ${form.plate_letter} ${form.plate_region}`;
+        const payload = {
+            brand:               form.brand.trim(),
+            model:               form.model.trim(),
+            year:                parseInt(form.year) || new Date().getFullYear(),
+            registration_number,
+            vin:                 form.vin.trim() || null,
+            current_mileage:     parseInt(form.current_mileage) || 0,
+            vehicle_type:        form.vehicle_type,
+            daily_rate:          form.daily_rate ? parseFloat(form.daily_rate) : null,
+            color:               form.color.trim() || null,
+            status:              form.status,
+        };
+
         setSaving(true);
         setFormError('');
         try {
-            await createVehicle({
-                brand:               form.brand.trim(),
-                model:               form.model.trim(),
-                year:                parseInt(form.year) || new Date().getFullYear(),
-                registration_number,
-                vin:                 form.vin.trim() || null,
-                current_mileage:     parseInt(form.current_mileage) || 0,
-                vehicle_type:        form.vehicle_type,
-                daily_rate:          form.daily_rate ? parseFloat(form.daily_rate) : null,
-                color:               form.color.trim() || null,
-                status:              form.status,
-            });
+            if (editingId) {
+                await updateVehicle(editingId, payload);
+            } else {
+                await createVehicle(payload);
+            }
             setShowModal(false);
             loadVehicles(true);
         } catch (e) {
-            setFormError(e.message || 'Erreur lors de la création.');
+            setFormError(e.message || 'Erreur lors de la sauvegarde.');
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleDelete = (v) => {
+        Alert.alert(
+            'Supprimer le véhicule',
+            `Supprimer "${v.brand} ${v.model}" — ${displayPlate(v.registration_number)} ?`,
+            [
+                { text: 'Annuler', style: 'cancel' },
+                {
+                    text: 'Supprimer', style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteVehicle(v.id);
+                            loadVehicles(true);
+                        } catch (e) {
+                            Alert.alert('Erreur', e.message);
+                        }
+                    },
+                },
+            ]
+        );
     };
 
     const changeStatus = (vehicle) => {
@@ -141,38 +198,60 @@ export default function VehiclesScreen() {
     });
 
     const FILTERS = [
-        { value: 'all',            label: 'Tous',         icon: 'car-sport',      color: '#1e3a5f', bg: '#eff6ff', count: vehicles.length },
+        { value: 'all',            label: 'Tous',         icon: 'car-sport',        color: '#1e3a5f', bg: '#eff6ff', count: vehicles.length },
         { value: 'available',      label: 'Disponibles',  icon: 'checkmark-circle', color: '#16a34a', bg: '#f0fdf4', count: vehicles.filter(v => v.status === 'available').length },
-        { value: 'rented',         label: 'Louées',       icon: 'key',            color: '#2563eb', bg: '#eff6ff', count: vehicles.filter(v => v.status === 'rented').length },
-        { value: 'maintenance',    label: 'Maintenance',  icon: 'construct',      color: '#d97706', bg: '#fffbeb', count: vehicles.filter(v => v.status === 'maintenance').length },
-        { value: 'out_of_service', label: 'Hors service', icon: 'close-circle',   color: '#dc2626', bg: '#fef2f2', count: vehicles.filter(v => v.status === 'out_of_service').length },
+        { value: 'rented',         label: 'Louées',       icon: 'key',              color: '#2563eb', bg: '#eff6ff', count: vehicles.filter(v => v.status === 'rented').length },
+        { value: 'maintenance',    label: 'Maintenance',  icon: 'construct',        color: '#d97706', bg: '#fffbeb', count: vehicles.filter(v => v.status === 'maintenance').length },
+        { value: 'out_of_service', label: 'Hors service', icon: 'close-circle',     color: '#dc2626', bg: '#fef2f2', count: vehicles.filter(v => v.status === 'out_of_service').length },
     ];
 
     const renderVehicle = ({ item: v }) => {
         const s = STATUS_CONFIG[v.status] || STATUS_CONFIG.available;
+        const showActions = canChangeStatus || canEdit || canDelete;
         return (
-            <View style={styles.card}>
-                <View style={styles.cardLeft}>
-                    <View style={styles.carIcon}>
-                        <Ionicons name="car-sport-outline" size={22} color="#1e3a5f" />
+            <View style={[styles.card, { borderLeftColor: s.color, borderLeftWidth: 4 }]}>
+                <View style={styles.cardTop}>
+                    <View style={[styles.carIcon, { backgroundColor: s.bg }]}>
+                        <Ionicons name="car-sport-outline" size={22} color={s.color} />
                     </View>
                     <View style={styles.cardInfo}>
                         <Text style={styles.cardTitle}>{v.brand} {v.model}</Text>
                         <Text style={styles.cardPlate}>{displayPlate(v.registration_number)}</Text>
-                        <Text style={styles.cardSub}>{v.year} · {v.current_mileage?.toLocaleString()} km</Text>
+                        <Text style={styles.cardSub}>{v.year} · {v.vehicle_type} · {v.current_mileage?.toLocaleString()} km</Text>
+                    </View>
+                    <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                        <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
+                            <Ionicons name={s.icon} size={11} color={s.color} />
+                            <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
+                        </View>
                         {v.daily_rate ? (
-                            <Text style={styles.cardRate}>{Number(v.daily_rate).toFixed(0)} MAD/jour</Text>
+                            <Text style={styles.cardRate}>{Number(v.daily_rate).toFixed(0)} MAD/j</Text>
                         ) : null}
                     </View>
                 </View>
-                <TouchableOpacity
-                    style={[styles.statusBadge, { backgroundColor: s.bg }]}
-                    onPress={() => changeStatus(v)}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name={s.icon} size={12} color={s.color} />
-                    <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
-                </TouchableOpacity>
+
+                {showActions && (
+                    <View style={styles.cardActions}>
+                        {canChangeStatus && (
+                            <TouchableOpacity style={styles.actionBtn} onPress={() => changeStatus(v)}>
+                                <Ionicons name="swap-horizontal-outline" size={14} color="#2563eb" />
+                                <Text style={[styles.actionBtnText, { color: '#2563eb' }]}>Statut</Text>
+                            </TouchableOpacity>
+                        )}
+                        {canEdit && (
+                            <TouchableOpacity style={styles.actionBtn} onPress={() => openEdit(v)}>
+                                <Ionicons name="create-outline" size={14} color="#d97706" />
+                                <Text style={[styles.actionBtnText, { color: '#d97706' }]}>Modifier</Text>
+                            </TouchableOpacity>
+                        )}
+                        {canDelete && (
+                            <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(v)}>
+                                <Ionicons name="trash-outline" size={14} color="#dc2626" />
+                                <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Supprimer</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                )}
             </View>
         );
     };
@@ -188,7 +267,6 @@ export default function VehiclesScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
-            {/* Recherche + bouton ajouter */}
             <View style={styles.topRow}>
                 <View style={[styles.searchBox, { flex: 1 }]}>
                     <Ionicons name="search" size={16} color="#94a3b8" style={{ marginRight: 8 }} />
@@ -205,14 +283,8 @@ export default function VehiclesScreen() {
                         </TouchableOpacity>
                     ) : null}
                 </View>
-                {canCreate && (
-                    <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
-                        <Ionicons name="add" size={22} color="#fff" />
-                    </TouchableOpacity>
-                )}
             </View>
 
-            {/* Filtres stats */}
             <StatsFilterBar filters={FILTERS} active={filter} onChange={setFilter} />
 
             <FlatList
@@ -227,22 +299,22 @@ export default function VehiclesScreen() {
                     <View style={styles.empty}>
                         <Ionicons name="car-outline" size={48} color="#cbd5e1" />
                         <Text style={styles.emptyText}>Aucun véhicule trouvé</Text>
-                        {canCreate && (
-                            <TouchableOpacity style={styles.emptyBtn} onPress={openCreate}>
-                                <Text style={styles.emptyBtnText}>Ajouter un véhicule</Text>
-                            </TouchableOpacity>
-                        )}
                     </View>
                 }
             />
 
-            {/* ── Modal création ── */}
+            {canCreate && (
+                <TouchableOpacity style={styles.fab} onPress={openCreate} activeOpacity={0.85}>
+                    <Ionicons name="add" size={26} color="#fff" />
+                </TouchableOpacity>
+            )}
+
+            {/* ── Modal Créer / Modifier ── */}
             <Modal visible={showModal} animationType="slide" presentationStyle="pageSheet">
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                     <SafeAreaView style={styles.modalSafe}>
-                        {/* Header modal */}
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Nouveau véhicule</Text>
+                            <Text style={styles.modalTitle}>{editingId ? 'Modifier le véhicule' : 'Nouveau véhicule'}</Text>
                             <TouchableOpacity onPress={() => setShowModal(false)}>
                                 <Ionicons name="close" size={24} color="#64748b" />
                             </TouchableOpacity>
@@ -256,7 +328,6 @@ export default function VehiclesScreen() {
                                 </View>
                             ) : null}
 
-                            {/* Marque + Modèle */}
                             <View style={styles.row2}>
                                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                                     <Text style={styles.label}>Marque *</Text>
@@ -268,7 +339,6 @@ export default function VehiclesScreen() {
                                 </View>
                             </View>
 
-                            {/* Année + Couleur */}
                             <View style={styles.row2}>
                                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                                     <Text style={styles.label}>Année</Text>
@@ -280,7 +350,6 @@ export default function VehiclesScreen() {
                                 </View>
                             </View>
 
-                            {/* Immatriculation marocaine */}
                             <View style={styles.fieldWrap}>
                                 <Text style={styles.label}>Immatriculation *</Text>
                                 <View style={styles.plateRow}>
@@ -294,7 +363,6 @@ export default function VehiclesScreen() {
                                         maxLength={5}
                                     />
                                     <View style={styles.plateSep}><Text style={styles.plateSepText}>|</Text></View>
-                                    {/* Sélecteur lettre arabe */}
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.letterScroll}>
                                         {ARABIC_LETTERS.map(l => (
                                             <TouchableOpacity
@@ -322,7 +390,6 @@ export default function VehiclesScreen() {
                                 </Text>
                             </View>
 
-                            {/* VIN */}
                             <View style={styles.fieldWrap}>
                                 <Text style={styles.label}>N° de châssis / VIN (optionnel)</Text>
                                 <TextInput
@@ -336,7 +403,6 @@ export default function VehiclesScreen() {
                                 />
                             </View>
 
-                            {/* Kilométrage + Tarif */}
                             <View style={styles.row2}>
                                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                                     <Text style={styles.label}>Kilométrage</Text>
@@ -348,7 +414,6 @@ export default function VehiclesScreen() {
                                 </View>
                             </View>
 
-                            {/* Type de véhicule */}
                             <View style={styles.fieldWrap}>
                                 <Text style={styles.label}>Type de véhicule</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -366,13 +431,13 @@ export default function VehiclesScreen() {
                                 </ScrollView>
                             </View>
 
-                            {/* Statut initial */}
                             <View style={styles.fieldWrap}>
-                                <Text style={styles.label}>Statut initial</Text>
+                                <Text style={styles.label}>Statut</Text>
                                 <View style={{ flexDirection: 'row', gap: 8 }}>
                                     {[
-                                        { value: 'available',   label: 'Disponible' },
-                                        { value: 'maintenance', label: 'Maintenance' },
+                                        { value: 'available',      label: 'Disponible' },
+                                        { value: 'maintenance',    label: 'Maintenance' },
+                                        { value: 'out_of_service', label: 'Hors service' },
                                     ].map(s => (
                                         <TouchableOpacity
                                             key={s.value}
@@ -388,16 +453,15 @@ export default function VehiclesScreen() {
                             <View style={{ height: 20 }} />
                         </ScrollView>
 
-                        {/* Bouton enregistrer */}
                         <View style={styles.modalFooter}>
                             <TouchableOpacity
                                 style={[styles.saveBtn, saving && { opacity: 0.6 }]}
-                                onPress={handleCreate}
+                                onPress={handleSave}
                                 disabled={saving}
                             >
                                 {saving
                                     ? <ActivityIndicator color="#fff" size="small" />
-                                    : <><Ionicons name="checkmark" size={20} color="#fff" /><Text style={styles.saveBtnText}>Enregistrer</Text></>
+                                    : <><Ionicons name="checkmark" size={20} color="#fff" /><Text style={styles.saveBtnText}>{editingId ? 'Enregistrer les modifications' : 'Enregistrer'}</Text></>
                                 }
                             </TouchableOpacity>
                         </View>
@@ -413,7 +477,7 @@ const styles = StyleSheet.create({
     center:      { flex: 1, alignItems: 'center', justifyContent: 'center' },
     loadingText: { marginTop: 10, color: '#64748b' },
 
-    topRow:    { flexDirection: 'row', alignItems: 'center', margin: 16, marginBottom: 10, gap: 10 },
+    topRow:    { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 16, marginBottom: 10, gap: 10 },
     searchBox: {
         flexDirection: 'row', alignItems: 'center',
         paddingHorizontal: 14, paddingVertical: 11,
@@ -421,54 +485,62 @@ const styles = StyleSheet.create({
         borderWidth: 1, borderColor: '#e2e8f0',
     },
     searchInput: { flex: 1, fontSize: 14, color: '#0f172a' },
-    addBtn: {
-        width: 46, height: 46, borderRadius: 12,
-        backgroundColor: '#1e3a5f',
-        alignItems: 'center', justifyContent: 'center',
-        shadowColor: '#1e3a5f', shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.3, shadowRadius: 6, elevation: 4,
-    },
 
-    list:  { paddingHorizontal: 16, paddingBottom: 40 },
+    list: { paddingHorizontal: 16, paddingBottom: 100 },
 
     card: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         backgroundColor: '#fff', borderRadius: 16, padding: 14, marginBottom: 10,
         borderWidth: 1, borderColor: '#f1f5f9',
         shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
     },
-    cardLeft:  { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    cardTop:   { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 4 },
     carIcon: {
         width: 46, height: 46, borderRadius: 12,
-        backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginRight: 12,
+        alignItems: 'center', justifyContent: 'center',
     },
     cardInfo:  { flex: 1 },
     cardTitle: { fontSize: 15, fontWeight: '700', color: '#0f172a' },
     cardPlate: { fontSize: 13, color: '#475569', marginTop: 2, fontWeight: '600' },
     cardSub:   { fontSize: 12, color: '#94a3b8', marginTop: 2 },
-    cardRate:  { fontSize: 12, fontWeight: '700', color: '#16a34a', marginTop: 3 },
+    cardRate:  { fontSize: 13, fontWeight: '700', color: '#16a34a' },
     statusBadge: {
         flexDirection: 'row', alignItems: 'center', gap: 4,
-        paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, marginLeft: 8,
+        paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8,
     },
     statusText: { fontSize: 11, fontWeight: '700' },
 
-    empty:       { alignItems: 'center', paddingVertical: 60 },
-    emptyText:   { color: '#94a3b8', marginTop: 10, fontSize: 15 },
-    emptyBtn:    { marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#1e3a5f', borderRadius: 10 },
-    emptyBtnText:{ color: '#fff', fontWeight: '700', fontSize: 14 },
+    cardActions: {
+        flexDirection: 'row', gap: 6, marginTop: 12,
+        paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9',
+    },
+    actionBtn: {
+        flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        gap: 4, paddingVertical: 7, borderRadius: 8, backgroundColor: '#f8fafc',
+    },
+    actionBtnText: { fontSize: 12, fontWeight: '700' },
 
-    // Modal
+    empty:     { alignItems: 'center', paddingVertical: 60 },
+    emptyText: { color: '#94a3b8', marginTop: 10, fontSize: 15 },
+
+    fab: {
+        position: 'absolute', bottom: 28, right: 20,
+        width: 56, height: 56, borderRadius: 28,
+        backgroundColor: '#1e3a5f',
+        alignItems: 'center', justifyContent: 'center',
+        shadowColor: '#1e3a5f', shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35, shadowRadius: 8, elevation: 8,
+    },
+
     modalSafe:   { flex: 1, backgroundColor: '#f8fafc' },
     modalHeader: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingHorizontal: 20, paddingVertical: 16,
         backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e2e8f0',
     },
-    modalTitle: { fontSize: 18, fontWeight: '800', color: '#1e3a5f' },
-    modalBody:  { flex: 1, padding: 20 },
-    modalFooter:{ padding: 20, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e2e8f0' },
+    modalTitle:  { fontSize: 18, fontWeight: '800', color: '#1e3a5f' },
+    modalBody:   { flex: 1, padding: 20 },
+    modalFooter: { padding: 20, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e2e8f0' },
 
     formError: {
         flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -486,7 +558,6 @@ const styles = StyleSheet.create({
         fontSize: 15, color: '#0f172a',
     },
 
-    // Plaque marocaine
     plateRow:    { flexDirection: 'row', alignItems: 'center', gap: 6 },
     plateNums:   { width: 80, textAlign: 'center' },
     plateRegion: { width: 56, textAlign: 'center' },
@@ -505,7 +576,6 @@ const styles = StyleSheet.create({
         textAlign: 'center', letterSpacing: 1,
     },
 
-    // Chips type/statut
     typeChip: {
         paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
         backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0',

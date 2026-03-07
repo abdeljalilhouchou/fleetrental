@@ -209,38 +209,78 @@ export default function RentalsScreen() {
 
         const isOngoing = r.status === 'ongoing';
         return (
-            <TouchableOpacity
-                style={styles.card}
-                activeOpacity={isOngoing ? 0.75 : 1}
-                onPress={isOngoing ? () => openActionModal(r) : undefined}
-            >
+            <View style={[styles.card, { borderLeftColor: s.color, borderLeftWidth: 4 }]}>
                 <View style={styles.cardTop}>
-                    <View style={styles.clientIcon}>
-                        <Ionicons name="person-outline" size={18} color="#1e3a5f" />
+                    <View style={[styles.clientIcon, { backgroundColor: s.bg }]}>
+                        <Ionicons name="person-outline" size={18} color={s.color} />
                     </View>
                     <View style={styles.cardInfo}>
                         <Text style={styles.clientName}>{clientName}</Text>
                         <Text style={styles.vehicleName}>{vehicleLabel}</Text>
+                        {r.vehicle?.registration_number ? (
+                            <Text style={styles.plateText}>{r.vehicle.registration_number}</Text>
+                        ) : null}
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: s.bg }]}>
                         <Ionicons name={s.icon} size={11} color={s.color} />
                         <Text style={[styles.statusText, { color: s.color }]}>{s.label}</Text>
                     </View>
                 </View>
-                <View style={styles.cardBottom}>
-                    <View style={styles.dateBlock}>
+
+                <View style={styles.cardMeta}>
+                    <View style={styles.metaItem}>
                         <Ionicons name="calendar-outline" size={13} color="#94a3b8" />
-                        <Text style={styles.dateText}>{formatDate(r.start_date)}</Text>
-                        <Ionicons name="arrow-forward" size={12} color="#94a3b8" />
-                        <Text style={styles.dateText}>{formatDate(r.end_date)}</Text>
+                        <Text style={styles.metaText}>{formatDate(r.start_date)}</Text>
+                        <Ionicons name="arrow-forward" size={11} color="#94a3b8" />
+                        <Text style={styles.metaText}>{formatDate(r.end_date)}</Text>
                     </View>
-                    <View style={styles.rightBlock}>
-                        {totalDays ? <Text style={styles.daysText}>{totalDays}j</Text> : null}
-                        {r.total_price ? <Text style={styles.priceText}>{Number(r.total_price).toFixed(0)} MAD</Text> : null}
-                        {isOngoing ? <Ionicons name="chevron-forward" size={14} color="#94a3b8" /> : null}
-                    </View>
+                    {totalDays ? (
+                        <View style={styles.metaItem}>
+                            <Ionicons name="time-outline" size={13} color="#94a3b8" />
+                            <Text style={styles.metaText}>{totalDays} jours</Text>
+                        </View>
+                    ) : null}
+                    {r.total_price ? (
+                        <View style={styles.metaItem}>
+                            <Ionicons name="cash-outline" size={13} color="#94a3b8" />
+                            <Text style={[styles.metaText, { color: '#16a34a', fontWeight: '700' }]}>{Number(r.total_price).toFixed(0)} MAD</Text>
+                        </View>
+                    ) : null}
                 </View>
-            </TouchableOpacity>
+
+                {isOngoing && (
+                    <View style={styles.cardActions}>
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => openActionModal(r)}>
+                            <Ionicons name="checkmark-circle-outline" size={14} color="#16a34a" />
+                            <Text style={[styles.actionBtnText, { color: '#16a34a' }]}>Terminer</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => {
+                            setActionRental(r);
+                            Alert.alert(
+                                'Annuler la location',
+                                `Confirmer l'annulation de la location de ${r.customer_name} ?`,
+                                [
+                                    { text: 'Non', style: 'cancel' },
+                                    {
+                                        text: 'Oui, annuler', style: 'destructive',
+                                        onPress: async () => {
+                                            try {
+                                                await cancelRental(r.id);
+                                                loadData(true);
+                                            } catch (e) {
+                                                Alert.alert('Erreur', e.message);
+                                            }
+                                        },
+                                    },
+                                ]
+                            );
+                        }}>
+                            <Ionicons name="close-circle-outline" size={14} color="#dc2626" />
+                            <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Annuler</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+            </View>
         );
     };
 
@@ -644,31 +684,39 @@ const styles = StyleSheet.create({
     list:  { paddingHorizontal: 16, paddingBottom: 40 },
 
     card: {
-        backgroundColor: '#fff', borderRadius: 16, padding: 14, marginBottom: 10,
+        backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10,
         borderWidth: 1, borderColor: '#f1f5f9',
         shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
     },
-    cardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
     clientIcon: {
-        width: 40, height: 40, borderRadius: 10,
-        backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginRight: 10,
+        width: 42, height: 42, borderRadius: 10,
+        alignItems: 'center', justifyContent: 'center',
     },
     cardInfo:    { flex: 1 },
     clientName:  { fontSize: 14, fontWeight: '700', color: '#0f172a' },
     vehicleName: { fontSize: 12, color: '#64748b', marginTop: 2 },
+    plateText:   { fontSize: 11, color: '#94a3b8', marginTop: 1 },
     statusBadge: {
         flexDirection: 'row', alignItems: 'center', gap: 4,
         paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8,
     },
     statusText: { fontSize: 11, fontWeight: '700' },
 
-    cardBottom:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    dateBlock:   { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    dateText:    { fontSize: 12, color: '#475569' },
-    rightBlock:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    daysText:    { fontSize: 12, fontWeight: '600', color: '#64748b' },
-    priceText:   { fontSize: 13, fontWeight: '800', color: '#16a34a' },
+    cardMeta:  { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4 },
+    metaItem:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    metaText:  { fontSize: 12, color: '#64748b' },
+
+    cardActions: {
+        flexDirection: 'row', gap: 6, marginTop: 12,
+        paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9',
+    },
+    actionBtn: {
+        flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        gap: 4, paddingVertical: 7, borderRadius: 8, backgroundColor: '#f8fafc',
+    },
+    actionBtnText: { fontSize: 12, fontWeight: '700' },
 
     empty:        { alignItems: 'center', paddingVertical: 60 },
     emptyText:    { color: '#94a3b8', marginTop: 10, fontSize: 15 },
