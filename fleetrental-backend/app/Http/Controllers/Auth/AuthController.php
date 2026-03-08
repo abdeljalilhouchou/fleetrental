@@ -51,16 +51,19 @@ class AuthController extends Controller
 
     private function getUserPermissions($user): array
     {
-        // Admins ont toutes les permissions
-        if ($user->isSuperAdmin() || $user->isCompanyAdmin()) {
+        // Super admin : toutes les permissions sans exception
+        if ($user->isSuperAdmin()) {
             return \App\Models\Permission::pluck('name')->toArray();
         }
 
-        // 1) Permissions du rôle (1 seule requête avec eager loading)
+        // Pour tous les autres rôles (y compris company_admin) :
+        // on part des permissions du rôle, puis on applique les overrides individuels.
+
+        // 1) Permissions du rôle
         $role = $user->roleModel()->with('permissions')->first();
         $rolePerms = $role ? $role->permissions->pluck('name') : collect();
 
-        // 2) Overrides individuels (1 seule requête)
+        // 2) Overrides individuels
         $overrides = $user->permissionOverrides()->with('permission')->get();
 
         // Appliquer les overrides
