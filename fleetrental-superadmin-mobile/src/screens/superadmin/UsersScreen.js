@@ -44,9 +44,9 @@ const STATE_CONFIG = {
 };
 
 function nextState(current) {
-    if (current === 'inherited_granted' || current === 'inherited_denied') return 'granted';
+    if (current === 'inherited_granted' || current === 'inherited_denied' || current === 'inherited') return 'granted';
     if (current === 'granted') return 'revoked';
-    return 'inherited';
+    return 'inherited'; // depuis revoked
 }
 
 function toApiState(state) {
@@ -168,21 +168,28 @@ function PermissionsTab({ user }) {
                 })}
             </ScrollView>
 
-            {/* Barre sauvegarde */}
+            {/* Barre sauvegarde — visible uniquement quand il y a des modifications */}
             {isDirty && !isSuperAdmin && (
                 <View style={styles.permSaveBar}>
-                    <Ionicons name="alert-circle" size={14} color="#f59e0b" />
-                    <Text style={styles.permSaveBarText}>Modifications non sauvegardées</Text>
-                    <TouchableOpacity onPress={() => setLocalStates({ ...originalStates })}>
-                        <Text style={styles.permDiscardText}>Annuler</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={handleSave}
-                        disabled={saving}
-                        style={[styles.permSaveBtn, saving && { opacity: 0.6 }]}
-                    >
-                        {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.permSaveBtnText}>Enregistrer</Text>}
-                    </TouchableOpacity>
+                    <View style={styles.permSaveBarInner}>
+                        <Ionicons name="warning" size={16} color="#fbbf24" />
+                        <Text style={styles.permSaveBarText}>Modifications non sauvegardées</Text>
+                    </View>
+                    <View style={styles.permSaveBarActions}>
+                        <TouchableOpacity onPress={() => setLocalStates({ ...originalStates })} style={styles.permDiscardBtn}>
+                            <Text style={styles.permDiscardText}>Annuler</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={handleSave}
+                            disabled={saving}
+                            style={[styles.permSaveBtn, saving && { opacity: 0.6 }]}
+                        >
+                            {saving
+                                ? <ActivityIndicator size="small" color="#fff" />
+                                : <><Ionicons name="checkmark" size={14} color="#fff" /><Text style={styles.permSaveBtnText}>Enregistrer</Text></>
+                            }
+                        </TouchableOpacity>
+                    </View>
                 </View>
             )}
         </View>
@@ -935,13 +942,18 @@ const styles = StyleSheet.create({
     stateChipText: { fontSize: 10, fontWeight: '700' },
 
     permSaveBar: {
-        flexDirection: 'row', alignItems: 'center', gap: 6,
-        backgroundColor: '#0f172a', paddingHorizontal: 14, paddingVertical: 10,
+        backgroundColor: '#1e293b',
+        paddingHorizontal: 14, paddingVertical: 12,
+        borderTopWidth: 2, borderTopColor: '#f59e0b',
+        gap: 8,
     },
-    permSaveBarText:  { flex: 1, fontSize: 11, color: '#fff', fontWeight: '600' },
-    permDiscardText:  { fontSize: 11, color: 'rgba(255,255,255,0.65)', paddingHorizontal: 6 },
-    permSaveBtn:      { backgroundColor: ACCENT, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
-    permSaveBtnText:  { fontSize: 11, color: '#fff', fontWeight: '700' },
+    permSaveBarInner:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    permSaveBarActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    permSaveBarText:    { flex: 1, fontSize: 12, color: '#fbbf24', fontWeight: '700' },
+    permDiscardBtn:     { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+    permDiscardText:    { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: '600' },
+    permSaveBtn:        { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#16a34a', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 7 },
+    permSaveBtnText:    { fontSize: 12, color: '#fff', fontWeight: '700' },
 
     errorBox: {
         flexDirection: 'row', alignItems: 'center', gap: 8,
