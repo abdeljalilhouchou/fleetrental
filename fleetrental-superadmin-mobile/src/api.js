@@ -174,3 +174,6 @@ export const getUserPermissions = (id) =>
 
 export const updateUserPermissions = (id, overrides) =>
     request(`/users/${id}/permissions`, { method: 'PUT', body: JSON.stringify({ overrides }) });
+
+export const toggleUserActive = (id) =>
+    request(`/users/${id}/toggle-active`, { method: 'PATCH' });
