@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 /**
@@ -12,12 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
  */
 export default function StatsFilterBar({ filters, active, onChange }) {
     return (
-        <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.row}
-            style={styles.scroll}
-        >
+        <View style={styles.row}>
             {filters.map(f => {
                 const isActive = active === f.value;
                 return (
@@ -33,7 +28,7 @@ export default function StatsFilterBar({ filters, active, onChange }) {
                         <View style={[styles.iconWrap, { backgroundColor: isActive ? f.bg : '#f1f5f9' }]}>
                             <Ionicons
                                 name={f.icon}
-                                size={18}
+                                size={16}
                                 color={isActive ? f.color : '#94a3b8'}
                             />
                         </View>
@@ -46,18 +41,19 @@ export default function StatsFilterBar({ filters, active, onChange }) {
                     </TouchableOpacity>
                 );
             })}
-        </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    scroll: { flexGrow: 0 },
-    row:    { paddingHorizontal: 16, paddingVertical: 8, gap: 10 },
+    row:    { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, gap: 7 },
     card: {
-        width: 90,
+        flex: 1,
+        minWidth: 58,
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 12,
+        borderRadius: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 6,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#e2e8f0',
@@ -68,15 +64,15 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     iconWrap: {
-        width: 36, height: 36, borderRadius: 10,
+        width: 30, height: 30, borderRadius: 8,
         alignItems: 'center', justifyContent: 'center',
-        marginBottom: 8,
+        marginBottom: 6,
     },
     count: {
-        fontSize: 22, fontWeight: '800', color: '#0f172a', lineHeight: 26,
+        fontSize: 18, fontWeight: '800', color: '#0f172a', lineHeight: 22,
     },
     label: {
-        fontSize: 11, fontWeight: '600', color: '#94a3b8',
-        marginTop: 3, textAlign: 'center',
+        fontSize: 10, fontWeight: '600', color: '#94a3b8',
+        marginTop: 2, textAlign: 'center',
     },
 });
