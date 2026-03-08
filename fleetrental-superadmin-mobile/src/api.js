@@ -65,6 +65,13 @@ export const confirmReservation = (id)      => request(`/reservations/${id}/conf
 export const rejectReservation  = (id)      => request(`/reservations/${id}/reject`,  { method: 'POST' });
 export const getGpsLocations    = ()        => request('/gps/active-locations');
 
+// ── Rôles & Permissions ───────────────────────────────────────────────────────
+
+export const getRoles          = ()          => request('/roles');
+export const getAllPermissions  = ()          => request('/permissions');
+export const updateRolePermissions = (id, permissions) =>
+    request(`/roles/${id}/permissions`, { method: 'PUT', body: JSON.stringify({ permissions }) });
+
 // ── Entreprises (super admin uniquement) ─────────────────────────────────────
 
 export const getCompanies = () => request('/companies');
