@@ -694,10 +694,9 @@ export default function VehiclesPage() {
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            maxLength={5}
                                             placeholder="12345"
                                             value={plateParts.nums}
-                                            onChange={(e) => setPlateParts(p => ({ ...p, nums: e.target.value.replace(/\D/g, '').slice(0, 5) }))}
+                                            onChange={(e) => setPlateParts(p => ({ ...p, nums: e.target.value.replace(/\D/g, '') }))}
                                             className="w-24 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/40 outline-none text-sm text-center font-mono text-gray-800 dark:text-gray-200"
                                         />
                                         <span className="text-gray-400 dark:text-gray-600 font-bold">|</span>

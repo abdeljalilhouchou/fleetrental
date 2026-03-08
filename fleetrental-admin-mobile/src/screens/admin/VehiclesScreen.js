@@ -406,11 +406,10 @@ export default function VehiclesScreen() {
                                     <TextInput
                                         style={[styles.input, styles.plateNums]}
                                         value={form.plate_nums}
-                                        onChangeText={v => setForm(p => ({...p, plate_nums: v.replace(/\D/g, '').slice(0,5)}))}
+                                        onChangeText={v => setForm(p => ({...p, plate_nums: v.replace(/\D/g, '')}))}
                                         keyboardType="numeric"
                                         placeholder="12345"
                                         placeholderTextColor="#94a3b8"
-                                        maxLength={5}
                                     />
                                     <View style={styles.plateSep}><Text style={styles.plateSepText}>|</Text></View>
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.letterScroll}>

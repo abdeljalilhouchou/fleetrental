@@ -74,24 +74,48 @@ class RentalController extends Controller
 
         DB::beginTransaction();
         try {
+            // Générer les identifiants locataire si email fourni
+            $pin = null;
+            $renterUserId = null;
+            if (!empty($validated['customer_email'])) {
+                $pin = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $renterUser = User::firstOrCreate(
+                    ['email' => $validated['customer_email']],
+                    [
+                        'name'       => $validated['customer_name'],
+                        'password'   => bcrypt($pin),
+                        'role'       => 'renter',
+                        'company_id' => $vehicle->company_id,
+                        'is_active'  => true,
+                    ]
+                );
+                // Si l'utilisateur existait déjà, mettre à jour le mot de passe
+                if (!$renterUser->wasRecentlyCreated) {
+                    $renterUser->update(['password' => bcrypt($pin)]);
+                }
+                $renterUserId = $renterUser->id;
+            }
+
             // Créer la location
             $rental = Rental::create([
-                'company_id' => $vehicle->company_id,
-                'vehicle_id' => $validated['vehicle_id'],
-                'customer_name' => $validated['customer_name'],
-                'customer_phone' => $validated['customer_phone'],
-                'customer_email' => $validated['customer_email'] ?? null,
-                'customer_address' => $validated['customer_address'] ?? null,
-                'customer_id_card' => $validated['customer_id_card'] ?? null,
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-                'start_mileage' => $validated['start_mileage'],
-                'daily_rate' => $validated['daily_rate'],
-                'total_price' => $totalPrice,
-                'deposit_amount' => $validated['deposit_amount'],
-                'paid_amount' => $validated['paid_amount'] ?? 0,
-                'notes' => $validated['notes'] ?? null,
-                'status' => 'ongoing',
+                'company_id'      => $vehicle->company_id,
+                'vehicle_id'      => $validated['vehicle_id'],
+                'renter_user_id'  => $renterUserId,
+                'renter_pin'      => $pin,
+                'customer_name'   => $validated['customer_name'],
+                'customer_phone'  => $validated['customer_phone'],
+                'customer_email'  => $validated['customer_email'] ?? null,
+                'customer_address'=> $validated['customer_address'] ?? null,
+                'customer_id_card'=> $validated['customer_id_card'] ?? null,
+                'start_date'      => $validated['start_date'],
+                'end_date'        => $validated['end_date'],
+                'start_mileage'   => $validated['start_mileage'],
+                'daily_rate'      => $validated['daily_rate'],
+                'total_price'     => $totalPrice,
+                'deposit_amount'  => $validated['deposit_amount'],
+                'paid_amount'     => $validated['paid_amount'] ?? 0,
+                'notes'           => $validated['notes'] ?? null,
+                'status'          => 'ongoing',
             ]);
 
             // IMPORTANT : Changer le statut du véhicule en "rented"
@@ -120,6 +144,7 @@ class RentalController extends Controller
 
             // Recharger les relations
             $rental->load(['vehicle', 'company']);
+            $accessCredentials = $pin ? ['email' => $validated['customer_email'], 'pin' => $pin] : null;
 
             // Email aux admins de l'entreprise
             $startDate = \Carbon\Carbon::parse($rental->start_date)->format('d/m/Y');
@@ -173,7 +198,11 @@ class RentalController extends Controller
                 }
             }
 
-            return response()->json($rental, 201);
+            $response = $rental->toArray();
+            if ($accessCredentials) {
+                $response['access_credentials'] = $accessCredentials;
+            }
+            return response()->json($response, 201);
 
         } catch (\Exception $e) {
             DB::rollBack();

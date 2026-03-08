@@ -62,6 +62,10 @@ export default function RentalsScreen() {
     const [detailItem, setDetailItem] = useState(null);
     const [showDetail, setShowDetail] = useState(false);
 
+    // Modal identifiants locataire
+    const [showCreds, setShowCreds]   = useState(false);
+    const [credsData, setCredsData]   = useState(null); // { email, pin }
+
     const loaded = useRef(false);
 
     const loadData = async (isRefresh = false) => {
@@ -113,7 +117,7 @@ export default function RentalsScreen() {
         setSaving(true);
         setFormError('');
         try {
-            await createRental({
+            const result = await createRental({
                 vehicle_id:      parseInt(form.vehicle_id),
                 customer_name:   form.customer_name.trim(),
                 customer_phone:  form.customer_phone.trim(),
@@ -127,6 +131,10 @@ export default function RentalsScreen() {
             });
             setShowModal(false);
             loadData(true);
+            if (result?.access_credentials) {
+                setCredsData(result.access_credentials);
+                setShowCreds(true);
+            }
         } catch (e) {
             setFormError(e.message || 'Erreur lors de la création.');
         } finally {
@@ -506,6 +514,7 @@ export default function RentalsScreen() {
                                 onPress={() => {
                                     updateForm('vehicle_id', String(v.id));
                                     if (v.daily_rate) updateForm('daily_rate', String(v.daily_rate));
+                                    if (v.current_mileage != null) updateForm('start_mileage', String(v.current_mileage));
                                     setShowVehiclePicker(false);
                                 }}
                             >
@@ -579,7 +588,7 @@ export default function RentalsScreen() {
                                     <TextInput style={styles.input} value={form.customer_phone} onChangeText={v => updateForm('customer_phone', v)} keyboardType="phone-pad" placeholder="06XXXXXXXX" placeholderTextColor="#94a3b8" />
                                 </View>
                                 <View style={[styles.fieldWrap, { flex: 1 }]}>
-                                    <Text style={styles.label}>Email</Text>
+                                    <Text style={styles.label}>Email <Text style={{ color: '#16a34a', fontWeight: '600' }}>(accès mobile)</Text></Text>
                                     <TextInput style={styles.input} value={form.customer_email} onChangeText={v => updateForm('customer_email', v)} keyboardType="email-address" autoCapitalize="none" placeholder="email@example.com" placeholderTextColor="#94a3b8" />
                                 </View>
                             </View>
@@ -724,6 +733,46 @@ export default function RentalsScreen() {
                     </SafeAreaView>
                 </KeyboardAvoidingView>
               )}
+            </Modal>
+
+            {/* ── Modal Identifiants Locataire ── */}
+            <Modal visible={showCreds} animationType="fade" transparent onRequestClose={() => setShowCreds(false)}>
+                <View style={styles.credsOverlay}>
+                    <View style={styles.credsSheet}>
+                        <View style={styles.credsHeader}>
+                            <View style={styles.credsIconWrap}>
+                                <Ionicons name="key" size={24} color="#fff" />
+                            </View>
+                            <Text style={styles.credsTitle}>Accès FleetRental Mobile</Text>
+                            <Text style={styles.credsSub}>Remettez ces identifiants au locataire pour accéder à l'app mobile.</Text>
+                        </View>
+                        {credsData && (
+                            <>
+                                <View style={styles.credsRow}>
+                                    <Ionicons name="mail-outline" size={18} color="#64748b" />
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.credsLabel}>Email</Text>
+                                        <Text style={styles.credsValue}>{credsData.email}</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.credsRow}>
+                                    <Ionicons name="lock-closed-outline" size={18} color="#64748b" />
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.credsLabel}>PIN</Text>
+                                        <Text style={[styles.credsValue, styles.credsPin]}>{credsData.pin}</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.credsNote}>
+                                    <Ionicons name="information-circle-outline" size={14} color="#d97706" />
+                                    <Text style={styles.credsNoteText}>Le locataire peut se connecter sur l'app FleetRental avec ces identifiants.</Text>
+                                </View>
+                            </>
+                        )}
+                        <TouchableOpacity style={styles.credsBtn} onPress={() => setShowCreds(false)}>
+                            <Text style={styles.credsBtnText}>Compris</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </Modal>
         </SafeAreaView>
     );
@@ -922,4 +971,46 @@ const styles = StyleSheet.create({
         backgroundColor: '#16a34a', borderRadius: 12, paddingVertical: 13,
     },
     actionBtnCompleteText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+
+    // Modal identifiants locataire
+    credsOverlay: {
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.55)',
+        justifyContent: 'center', alignItems: 'center', padding: 24,
+    },
+    credsSheet: {
+        backgroundColor: '#fff', borderRadius: 24, width: '100%',
+        overflow: 'hidden',
+        shadowColor: '#000', shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15, shadowRadius: 24, elevation: 12,
+    },
+    credsHeader: {
+        backgroundColor: '#1e3a5f', padding: 24, alignItems: 'center', gap: 8,
+    },
+    credsIconWrap: {
+        width: 48, height: 48, borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        alignItems: 'center', justifyContent: 'center', marginBottom: 4,
+    },
+    credsTitle: { fontSize: 17, fontWeight: '800', color: '#fff' },
+    credsSub:   { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 18 },
+    credsRow: {
+        flexDirection: 'row', alignItems: 'center', gap: 14,
+        paddingHorizontal: 20, paddingVertical: 16,
+        borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
+    },
+    credsLabel: { fontSize: 11, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
+    credsValue: { fontSize: 15, fontWeight: '600', color: '#0f172a' },
+    credsPin:   { fontSize: 26, fontWeight: '900', color: '#1e3a5f', letterSpacing: 6 },
+    credsNote: {
+        flexDirection: 'row', alignItems: 'flex-start', gap: 8,
+        margin: 16, backgroundColor: '#fef3c7', borderRadius: 12,
+        padding: 12, borderWidth: 1, borderColor: '#fde68a',
+    },
+    credsNoteText: { fontSize: 12, color: '#92400e', flex: 1, lineHeight: 18 },
+    credsBtn: {
+        margin: 20, marginTop: 8,
+        backgroundColor: '#1e3a5f', borderRadius: 14, paddingVertical: 15,
+        alignItems: 'center',
+    },
+    credsBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });
