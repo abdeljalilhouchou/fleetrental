@@ -28,11 +28,13 @@ class Rental extends Model
         'paid_amount',
         'status',
         'notes',
+        'is_archived',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'is_archived' => 'boolean',
         'daily_rate' => 'decimal:2',
         'total_price' => 'decimal:2',
         'deposit_amount' => 'decimal:2',

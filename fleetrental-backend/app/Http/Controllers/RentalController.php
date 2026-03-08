@@ -19,7 +19,10 @@ class RentalController extends Controller
             ? null
             : $request->user()->company_id;
 
-        $query = Rental::with(['vehicle', 'company', 'files']);
+        $archived = $request->boolean('archived', false);
+
+        $query = Rental::with(['vehicle', 'company', 'files'])
+            ->where('is_archived', $archived);
 
         if ($companyId) {
             $query->where('company_id', $companyId);
@@ -379,6 +382,34 @@ class RentalController extends Controller
         $rental->delete();
 
         return response()->json(['message' => 'Location supprimée']);
+    }
+
+    // Archiver une location (non-ongoing uniquement)
+    public function archive(Request $request, Rental $rental)
+    {
+        if ($request->user()->role !== 'super_admin' && $rental->company_id !== $request->user()->company_id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        if ($rental->status === 'ongoing') {
+            return response()->json(['message' => 'Impossible d\'archiver une location en cours'], 400);
+        }
+
+        $rental->update(['is_archived' => true]);
+
+        return response()->json(['message' => 'Location archivée']);
+    }
+
+    // Désarchiver une location
+    public function unarchive(Request $request, Rental $rental)
+    {
+        if ($request->user()->role !== 'super_admin' && $rental->company_id !== $request->user()->company_id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $rental->update(['is_archived' => false]);
+
+        return response()->json(['message' => 'Location désarchivée']);
     }
 
     // Générer le contrat PDF d'une location

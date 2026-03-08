@@ -88,7 +88,7 @@ export const updateVehicleStatus = (id, status) =>
 
 // ── Locations ─────────────────────────────────────────────────────────────────
 
-export const getRentals = () => request('/rentals');
+export const getRentals = (archived = false) => request(`/rentals${archived ? '?archived=1' : ''}`);
 
 export const createRental = (data) =>
     request('/rentals', { method: 'POST', body: JSON.stringify(data) });
@@ -104,6 +104,12 @@ export const completeRental = (id, data) =>
 
 export const cancelRental = (id) =>
     request(`/rentals/${id}/cancel`, { method: 'POST' });
+
+export const archiveRental = (id) =>
+    request(`/rentals/${id}/archive`, { method: 'POST' });
+
+export const unarchiveRental = (id) =>
+    request(`/rentals/${id}/unarchive`, { method: 'POST' });
 
 // ── Maintenances ──────────────────────────────────────────────────────────────
 

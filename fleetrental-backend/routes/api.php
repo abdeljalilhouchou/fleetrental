@@ -186,6 +186,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/rentals', [RentalController::class, 'store']);
         Route::post('/rentals/{rental}/complete', [RentalController::class, 'complete']);
         Route::post('/rentals/{rental}/cancel', [RentalController::class, 'cancel']);
+        Route::post('/rentals/{rental}/archive', [RentalController::class, 'archive']);
+        Route::post('/rentals/{rental}/unarchive', [RentalController::class, 'unarchive']);
         Route::post('/rentals/{rental}/files', [RentalFileController::class, 'store']);
         Route::get('/vehicles/{vehicle}/rentals', [RentalController::class, 'vehicleHistory']);
     });

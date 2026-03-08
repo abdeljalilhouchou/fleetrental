@@ -4,10 +4,11 @@ import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
     TextInput, RefreshControl, ActivityIndicator, SafeAreaView,
     Alert, Modal, ScrollView, KeyboardAvoidingView, Platform,
+    Animated, PanResponder,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { getRentals, createRental, getVehicles, completeRental, cancelRental } from '../../api';
+import { getRentals, createRental, getVehicles, completeRental, cancelRental, archiveRental, unarchiveRental } from '../../api';
 import StatsFilterBar from '../../components/StatsFilterBar';
 
 const STATUS_CONFIG = {
@@ -33,13 +34,66 @@ const EMPTY_FORM = {
     notes: '',
 };
 
+// ── Swipeable row (glisser à droite pour archiver) ────────────────────────────
+function SwipeableRow({ children, onSwipe, disabled }) {
+    const translateX = useRef(new Animated.Value(0)).current;
+    const THRESHOLD = 100;
+
+    const panResponder = useRef(PanResponder.create({
+        onMoveShouldSetPanResponder: (_, g) =>
+            !disabled && g.dx > 8 && Math.abs(g.dy) < 25,
+        onPanResponderMove: (_, g) => {
+            if (g.dx > 0) translateX.setValue(Math.min(g.dx, 160));
+        },
+        onPanResponderRelease: (_, g) => {
+            if (g.dx >= THRESHOLD) {
+                Animated.timing(translateX, {
+                    toValue: 400, duration: 200, useNativeDriver: true,
+                }).start(() => {
+                    translateX.setValue(0);
+                    onSwipe();
+                });
+            } else {
+                Animated.spring(translateX, {
+                    toValue: 0, useNativeDriver: true, friction: 7,
+                }).start();
+            }
+        },
+        onPanResponderTerminate: () => {
+            Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+        },
+    })).current;
+
+    const bgOpacity = translateX.interpolate({ inputRange: [0, 80], outputRange: [0, 1], extrapolate: 'clamp' });
+    const iconScale = translateX.interpolate({ inputRange: [40, 100], outputRange: [0.7, 1], extrapolate: 'clamp' });
+
+    return (
+        <View style={{ marginBottom: 10, borderRadius: 14, overflow: 'hidden' }}>
+            {/* Fond vert révélé */}
+            <Animated.View style={[styles.swipeBg, { opacity: bgOpacity }]}>
+                <Animated.View style={{ transform: [{ scale: iconScale }], alignItems: 'center' }}>
+                    <Ionicons name="archive-outline" size={22} color="#fff" />
+                    <Text style={styles.swipeBgText}>Archiver</Text>
+                </Animated.View>
+            </Animated.View>
+
+            {/* Carte glissante */}
+            <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
+                {children}
+            </Animated.View>
+        </View>
+    );
+}
+
 export default function RentalsScreen() {
     const [rentals,    setRentals]    = useState([]);
+    const [archived,   setArchived]   = useState([]);
     const [vehicles,   setVehicles]   = useState([]);
     const [loading,    setLoading]    = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [search,     setSearch]     = useState('');
     const [filter,     setFilter]     = useState('all');
+    const [showArchived, setShowArchived] = useState(false);
 
     const [showModal,  setShowModal]  = useState(false);
     const [form,       setForm]       = useState(EMPTY_FORM);
@@ -47,24 +101,20 @@ export default function RentalsScreen() {
     const [formError,  setFormError]  = useState('');
     const [showVehiclePicker, setShowVehiclePicker] = useState(false);
 
-    // Date picker
-    const [activeDateField, setActiveDateField] = useState(null); // 'start_date' | 'end_date'
+    const [activeDateField, setActiveDateField] = useState(null);
     const [tempDate, setTempDate] = useState(new Date());
 
-    // Modal terminer/annuler
-    const [actionRental, setActionRental] = useState(null); // rental sélectionné pour action
+    const [actionRental, setActionRental] = useState(null);
     const [showActionModal, setShowActionModal] = useState(false);
     const [endMileage, setEndMileage] = useState('');
     const [paidAmount, setPaidAmount] = useState('');
     const [actionSaving, setActionSaving] = useState(false);
 
-    // Modal détails
     const [detailItem, setDetailItem] = useState(null);
     const [showDetail, setShowDetail] = useState(false);
 
-    // Modal identifiants locataire
     const [showCreds, setShowCreds]   = useState(false);
-    const [credsData, setCredsData]   = useState(null); // { email, pin }
+    const [credsData, setCredsData]   = useState(null);
 
     const loaded = useRef(false);
 
@@ -72,11 +122,13 @@ export default function RentalsScreen() {
         if (isRefresh) setRefreshing(true);
         else if (!loaded.current) setLoading(true);
         try {
-            const [r, v] = await Promise.all([
-                getRentals().catch(() => []),
+            const [r, arc, v] = await Promise.all([
+                getRentals(false).catch(() => []),
+                getRentals(true).catch(() => []),
                 getVehicles().catch(() => []),
             ]);
             setRentals(r);
+            setArchived(arc);
             setVehicles(v);
             loaded.current = true;
         } finally {
@@ -87,7 +139,6 @@ export default function RentalsScreen() {
 
     useFocusEffect(useCallback(() => { loadData(); }, []));
 
-    // Calcul automatique du total (affiché uniquement, le backend recalcule)
     const calcTotal = (f = form) => {
         if (!f.start_date || !f.end_date || !f.daily_rate) return '';
         const days = Math.ceil((new Date(f.end_date) - new Date(f.start_date)) / 86400000) + 1;
@@ -192,7 +243,27 @@ export default function RentalsScreen() {
         );
     };
 
-    const filtered = rentals.filter(r => {
+    const handleArchive = async (id) => {
+        try {
+            await archiveRental(id);
+            loadData(true);
+        } catch (e) {
+            Alert.alert('Erreur', e.message);
+        }
+    };
+
+    const handleUnarchive = async (id) => {
+        try {
+            await unarchiveRental(id);
+            loadData(true);
+        } catch (e) {
+            Alert.alert('Erreur', e.message);
+        }
+    };
+
+    const activeList = showArchived ? archived : rentals;
+
+    const filtered = activeList.filter(r => {
         const client = r.customer_name || r.client_name || '';
         const plate  = r.vehicle?.registration_number || '';
         const matchSearch = !search ||
@@ -202,11 +273,11 @@ export default function RentalsScreen() {
     });
 
     const FILTERS = [
-        { value: 'all',       label: 'Toutes',    icon: 'list',             color: '#1e3a5f', bg: '#eff6ff', count: rentals.length },
-        { value: 'ongoing',   label: 'En cours',  icon: 'checkmark-circle', color: '#16a34a', bg: '#f0fdf4', count: rentals.filter(r => r.status === 'ongoing').length },
-        { value: 'pending',   label: 'En attente',icon: 'time',             color: '#d97706', bg: '#fffbeb', count: rentals.filter(r => r.status === 'pending').length },
-        { value: 'completed', label: 'Terminées', icon: 'checkmark-done',   color: '#64748b', bg: '#f8fafc', count: rentals.filter(r => r.status === 'completed').length },
-        { value: 'cancelled', label: 'Annulées',  icon: 'close-circle',     color: '#dc2626', bg: '#fef2f2', count: rentals.filter(r => r.status === 'cancelled').length },
+        { value: 'all',       label: 'Toutes',    icon: 'list',             color: '#1e3a5f', bg: '#eff6ff', count: activeList.length },
+        { value: 'ongoing',   label: 'En cours',  icon: 'checkmark-circle', color: '#16a34a', bg: '#f0fdf4', count: activeList.filter(r => r.status === 'ongoing').length },
+        { value: 'pending',   label: 'En attente',icon: 'time',             color: '#d97706', bg: '#fffbeb', count: activeList.filter(r => r.status === 'pending').length },
+        { value: 'completed', label: 'Terminées', icon: 'checkmark-done',   color: '#64748b', bg: '#f8fafc', count: activeList.filter(r => r.status === 'completed').length },
+        { value: 'cancelled', label: 'Annulées',  icon: 'close-circle',     color: '#dc2626', bg: '#fef2f2', count: activeList.filter(r => r.status === 'cancelled').length },
     ];
 
     const selectedVehicle = vehicles.find(v => String(v.id) === String(form.vehicle_id));
@@ -219,9 +290,11 @@ export default function RentalsScreen() {
             ? Math.ceil((new Date(r.end_date) - new Date(r.start_date)) / 86400000)
             : null;
 
-        const isOngoing = r.status === 'ongoing';
-        return (
-            <View style={[styles.card, { borderLeftColor: s.color, borderLeftWidth: 4 }]}>
+        const isOngoing   = r.status === 'ongoing';
+        const canArchive  = !isOngoing && !showArchived;
+
+        const cardContent = (
+            <View style={[styles.card, { borderLeftColor: s.color, borderLeftWidth: 4, marginBottom: canArchive ? 0 : 10 }]}>
                 <View style={styles.cardTop}>
                     <View style={[styles.clientIcon, { backgroundColor: s.bg }]}>
                         <Ionicons name="person-outline" size={18} color={s.color} />
@@ -295,9 +368,30 @@ export default function RentalsScreen() {
                             <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>Annuler</Text>
                         </TouchableOpacity>
                     </>)}
+                    {showArchived && (
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => {
+                            Alert.alert('Désarchiver', 'Remettre cette location dans la liste principale ?', [
+                                { text: 'Non', style: 'cancel' },
+                                { text: 'Oui', onPress: () => handleUnarchive(r.id) },
+                            ]);
+                        }}>
+                            <Ionicons name="arrow-undo-outline" size={14} color="#d97706" />
+                            <Text style={[styles.actionBtnText, { color: '#d97706' }]}>Désarchiver</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
         );
+
+        if (canArchive) {
+            return (
+                <SwipeableRow onSwipe={() => handleArchive(r.id)} disabled={false}>
+                    {cardContent}
+                </SwipeableRow>
+            );
+        }
+
+        return cardContent;
     };
 
     if (loading) {
@@ -327,10 +421,40 @@ export default function RentalsScreen() {
                         </TouchableOpacity>
                     ) : null}
                 </View>
-                <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
-                    <Ionicons name="add" size={22} color="#fff" />
+                {/* Bouton archives */}
+                <TouchableOpacity
+                    style={[styles.archiveToggleBtn, showArchived && styles.archiveToggleBtnActive]}
+                    onPress={() => { setShowArchived(v => !v); setFilter('all'); setSearch(''); }}
+                >
+                    <Ionicons name="archive-outline" size={20} color={showArchived ? '#fff' : '#64748b'} />
+                    {archived.length > 0 && !showArchived && (
+                        <View style={styles.archiveBadge}>
+                            <Text style={styles.archiveBadgeText}>{archived.length}</Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
+                {!showArchived && (
+                    <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
+                        <Ionicons name="add" size={22} color="#fff" />
+                    </TouchableOpacity>
+                )}
             </View>
+
+            {/* Bannière archives */}
+            {showArchived && (
+                <View style={styles.archiveBanner}>
+                    <Ionicons name="archive" size={15} color="#d97706" />
+                    <Text style={styles.archiveBannerText}>Archives — {archived.length} location{archived.length !== 1 ? 's' : ''}</Text>
+                </View>
+            )}
+
+            {/* Indicateur swipe (uniquement vue principale, locations non-en-cours) */}
+            {!showArchived && rentals.some(r => r.status !== 'ongoing') && (
+                <View style={styles.swipeHint}>
+                    <Ionicons name="arrow-forward-outline" size={12} color="#94a3b8" />
+                    <Text style={styles.swipeHintText}>Glisser à droite pour archiver une location terminée ou annulée</Text>
+                </View>
+            )}
 
             <StatsFilterBar filters={FILTERS} active={filter} onChange={setFilter} />
 
@@ -342,11 +466,15 @@ export default function RentalsScreen() {
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadData(true)} colors={['#1e3a5f']} />}
                 ListEmptyComponent={
                     <View style={styles.empty}>
-                        <Ionicons name="key-outline" size={48} color="#cbd5e1" />
-                        <Text style={styles.emptyText}>Aucune location trouvée</Text>
-                        <TouchableOpacity style={styles.emptyBtn} onPress={openCreate}>
-                            <Text style={styles.emptyBtnText}>Créer une location</Text>
-                        </TouchableOpacity>
+                        <Ionicons name={showArchived ? 'archive-outline' : 'key-outline'} size={48} color="#cbd5e1" />
+                        <Text style={styles.emptyText}>
+                            {showArchived ? 'Aucune location archivée' : 'Aucune location trouvée'}
+                        </Text>
+                        {!showArchived && (
+                            <TouchableOpacity style={styles.emptyBtn} onPress={openCreate}>
+                                <Text style={styles.emptyBtnText}>Créer une location</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 }
             />
@@ -493,7 +621,6 @@ export default function RentalsScreen() {
             {/* ── Modal unique (formulaire + picker intégré) ── */}
             <Modal visible={showModal} animationType="slide" presentationStyle="pageSheet">
               {showVehiclePicker ? (
-                /* ── Vue picker véhicule ── */
                 <SafeAreaView style={styles.modalSafe}>
                     <View style={styles.modalHeader}>
                         <TouchableOpacity onPress={() => setShowVehiclePicker(false)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -543,7 +670,6 @@ export default function RentalsScreen() {
                     />
                 </SafeAreaView>
               ) : (
-                /* ── Vue formulaire ── */
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                     <SafeAreaView style={styles.modalSafe}>
                         <View style={styles.modalHeader}>
@@ -561,7 +687,6 @@ export default function RentalsScreen() {
                                 </View>
                             ) : null}
 
-                            {/* Sélection véhicule */}
                             <View style={styles.fieldWrap}>
                                 <Text style={styles.label}>Véhicule *</Text>
                                 <TouchableOpacity
@@ -577,7 +702,6 @@ export default function RentalsScreen() {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Infos client */}
                             <View style={styles.fieldWrap}>
                                 <Text style={styles.label}>Nom du client *</Text>
                                 <TextInput style={styles.input} value={form.customer_name} onChangeText={v => updateForm('customer_name', v)} placeholder="Mohamed Alami" placeholderTextColor="#94a3b8" />
@@ -593,7 +717,6 @@ export default function RentalsScreen() {
                                 </View>
                             </View>
 
-                            {/* Dates */}
                             <View style={styles.row2}>
                                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                                     <Text style={styles.label}>Date début *</Text>
@@ -627,7 +750,6 @@ export default function RentalsScreen() {
                                 </View>
                             </View>
 
-                            {/* Date picker natif (Android dialog / iOS inline) */}
                             {activeDateField && Platform.OS === 'android' && (
                                 <DateTimePicker
                                     value={tempDate}
@@ -644,7 +766,6 @@ export default function RentalsScreen() {
                                 />
                             )}
 
-                            {/* Tarif + Caution */}
                             <View style={styles.row2}>
                                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                                     <Text style={styles.label}>Tarif/jour (MAD) *</Text>
@@ -656,7 +777,6 @@ export default function RentalsScreen() {
                                 </View>
                             </View>
 
-                            {/* Kilométrage + Total estimé */}
                             <View style={styles.row2}>
                                 <View style={[styles.fieldWrap, { flex: 1 }]}>
                                     <Text style={styles.label}>Kilométrage départ</Text>
@@ -672,7 +792,6 @@ export default function RentalsScreen() {
                                 </View>
                             </View>
 
-                            {/* Notes */}
                             <View style={styles.fieldWrap}>
                                 <Text style={styles.label}>Notes</Text>
                                 <TextInput
@@ -687,7 +806,6 @@ export default function RentalsScreen() {
                             <View style={{ height: 20 }} />
                         </ScrollView>
 
-                        {/* iOS date picker (calendrier inline) */}
                         {activeDateField && Platform.OS === 'ios' && (
                             <View style={styles.iosPickerSheet}>
                                 <View style={styles.iosPickerHeader}>
@@ -798,11 +916,50 @@ const styles = StyleSheet.create({
         shadowColor: '#1e3a5f', shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.3, shadowRadius: 6, elevation: 4,
     },
+    archiveToggleBtn: {
+        width: 46, height: 46, borderRadius: 12,
+        backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0',
+        alignItems: 'center', justifyContent: 'center',
+    },
+    archiveToggleBtnActive: {
+        backgroundColor: '#d97706', borderColor: '#d97706',
+    },
+    archiveBadge: {
+        position: 'absolute', top: 6, right: 6,
+        backgroundColor: '#dc2626', borderRadius: 8,
+        minWidth: 16, height: 16,
+        alignItems: 'center', justifyContent: 'center',
+    },
+    archiveBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
-    list:  { paddingHorizontal: 16, paddingBottom: 40 },
+    archiveBanner: {
+        flexDirection: 'row', alignItems: 'center', gap: 8,
+        marginHorizontal: 16, marginBottom: 4,
+        backgroundColor: '#fef3c7', borderRadius: 10,
+        paddingHorizontal: 14, paddingVertical: 8,
+        borderWidth: 1, borderColor: '#fde68a',
+    },
+    archiveBannerText: { fontSize: 13, fontWeight: '700', color: '#92400e' },
+
+    swipeHint: {
+        flexDirection: 'row', alignItems: 'center', gap: 6,
+        marginHorizontal: 16, marginBottom: 4,
+    },
+    swipeHintText: { fontSize: 11, color: '#94a3b8', fontStyle: 'italic' },
+
+    // Swipeable
+    swipeBg: {
+        position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+        backgroundColor: '#16a34a', borderRadius: 14,
+        alignItems: 'flex-start', justifyContent: 'center',
+        paddingLeft: 24,
+    },
+    swipeBgText: { color: '#fff', fontWeight: '700', fontSize: 11, marginTop: 3 },
+
+    list:  { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 4 },
 
     card: {
-        backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10,
+        backgroundColor: '#fff', borderRadius: 14, padding: 14,
         borderWidth: 1, borderColor: '#f1f5f9',
         shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
@@ -873,14 +1030,6 @@ const styles = StyleSheet.create({
     pickerValue:       { color: '#0f172a', fontSize: 14, flex: 1, fontWeight: '600' },
     pickerHint:        { fontSize: 12, color: '#94a3b8', marginBottom: 12 },
 
-    typeChip: {
-        paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-        backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0',
-    },
-    typeChipActive: { backgroundColor: '#1e3a5f', borderColor: '#1e3a5f' },
-    typeText:       { fontSize: 13, fontWeight: '600', color: '#64748b' },
-    typeTextActive: { color: '#fff' },
-
     vehiclePickerRow: {
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 8,
@@ -923,7 +1072,7 @@ const styles = StyleSheet.create({
     iosPickerCancel: { fontSize: 15, color: '#64748b' },
     iosPickerDone:   { fontSize: 15, color: '#1e3a5f', fontWeight: '700' },
 
-    // Action modal (Terminer / Annuler)
+    // Action modal
     actionOverlay: {
         flex: 1, backgroundColor: 'rgba(0,0,0,0.45)',
         justifyContent: 'flex-end',
